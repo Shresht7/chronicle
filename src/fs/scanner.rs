@@ -19,38 +19,43 @@ pub fn scan_directory(root_path: &Path) -> Result<Snapshot, Box<dyn std::error::
     // Walk the directory collecting the metadata for each file, respecting .gitignore
     for entry in WalkBuilder::new(root_path).build().filter_map(|e| e.ok()) {
         let path = entry.path();
-        if path.is_file() {
-            let metadata = entry.metadata()?;
-            let modified: DateTime<Utc> = metadata.modified()?.into();
-            let created: Option<DateTime<Utc>> =
-                metadata.created().ok().and_then(|t| Some(t.into()));
+        let file_type = entry.file_type();
 
-            let file_type = if metadata.is_symlink() {
-                "symlink".to_string()
-            } else {
-                path.extension()
-                    .and_then(|s| s.to_str())
-                    .unwrap_or("")
-                    .to_string()
-            };
+        // Process only regular files and symlinks
+        if let Some(ft) = file_type {
+            if ft.is_file() || ft.is_symlink() {
+                let metadata = entry.metadata()?;
+                let modified: DateTime<Utc> = metadata.modified()?.into();
+                let created: Option<DateTime<Utc>> =
+                    metadata.created().ok().and_then(|t| Some(t.into()));
 
-            let (symlink_target, symlink_target_exists) = if metadata.is_symlink() {
-                let target_path = std::fs::read_link(path).ok();
-                let target_exists = target_path.as_ref().map(|p| p.exists());
-                (target_path, target_exists)
-            } else {
-                (None, None)
-            };
+                let file_type_str = if ft.is_symlink() {
+                    "symlink".to_string()
+                } else {
+                    path.extension()
+                        .and_then(|s| s.to_str())
+                        .unwrap_or("")
+                        .to_string()
+                };
 
-            files.push(FileMetric {
-                path: path.strip_prefix(root_path)?.to_path_buf(),
-                size: metadata.len(),
-                modified: Some(modified),
-                created,
-                file_type,
-                symlink_target,
-                symlink_target_exists,
-            });
+                let (symlink_target, symlink_target_exists) = if ft.is_symlink() {
+                    let target_path = std::fs::read_link(path).ok();
+                    let target_exists = target_path.as_ref().map(|p| p.exists());
+                    (target_path, target_exists)
+                } else {
+                    (None, None)
+                };
+
+                files.push(FileMetric {
+                    path: path.strip_prefix(root_path)?.to_path_buf(),
+                    size: metadata.len(),
+                    modified: Some(modified),
+                    created,
+                    file_type: file_type_str,
+                    symlink_target,
+                    symlink_target_exists,
+                });
+            }
         }
     }
 
