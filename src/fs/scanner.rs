@@ -26,8 +26,9 @@ pub fn scan_directory(
     follow_symlinks: bool,
 ) -> Result<Snapshot, Box<dyn std::error::Error>> {
     let timestamp = Utc::now();
-    let id = uuid::Uuid::new_v4().to_string(); // Placeholder for unique ID
+    let id = uuid::Uuid::new_v4().to_string(); // Generate a unique ID for the snapshot
 
+    // Initialize progress bar for user feedback
     let pb = ProgressBar::new_spinner();
     pb.set_style(
         ProgressStyle::default_spinner()
@@ -37,24 +38,29 @@ pub fn scan_directory(
     pb.set_message(format!("Scanning {}", root_path.display()));
     pb.enable_steady_tick(std::time::Duration::from_millis(100));
 
+    // Configure the directory walker
+    // It respects .gitignore by default and can be configured to follow symlinks
     let mut walk_builder = WalkBuilder::new(root_path);
     walk_builder.follow_links(follow_symlinks);
+    // Add any additional ignore patterns provided via CLI
     for pattern in ignore_patterns {
         walk_builder.add_ignore(pattern);
     }
 
-    // Walk the directory and bridge to a parallel iterator
+    // Walk the directory in parallel and collect file metrics
     let files: Vec<FileMetric> = walk_builder
         .build()
-        .filter_map(|result| result.ok())
-        .par_bridge()
+        .filter_map(|result| result.ok()) // Filter out errors during directory traversal
+        .par_bridge() // Bridge to a parallel iterator for performance
         .filter_map(|entry| {
             let path = entry.path();
-            let file_type = entry.file_type()?;
+            let file_type = entry.file_type()?; // Get file type (file, dir, symlink)
 
+            // Process only files and symbolic links
             if file_type.is_file() || file_type.is_symlink() {
-                let metadata = entry.metadata().ok()?;
+                let metadata = entry.metadata().ok()?; // Get file metadata
 
+                // Skip file if its size exceeds the maximum allowed size
                 if let Some(max_s) = max_size {
                     if metadata.len() > max_s {
                         return None;
@@ -63,28 +69,32 @@ pub fn scan_directory(
                 let modified: DateTime<Utc> = metadata.modified().ok()?.into();
                 let created: Option<DateTime<Utc>> = metadata.created().ok().map(|t| t.into());
 
+                // Determine file type string (extension or "symlink")
                 let file_type_str = if file_type.is_symlink() {
                     "symlink".to_string()
                 } else {
                     path.extension()
-                        .and_then(|s| s.to_str())
-                        .unwrap_or("")
+                        .and_then(|s| s.to_str()) // Get extension as string
+                        .unwrap_or("") // Default to empty string if no extension
                         .to_string()
                 };
 
+                // Handle symlink specific metadata
                 let (symlink_target, symlink_target_exists) = if file_type.is_symlink() {
-                    let target_path = std::fs::read_link(path).ok();
-                    let target_exists = target_path.as_ref().map(|p| p.exists());
+                    let target_path = std::fs::read_link(path).ok(); // Resolve symlink target
+                    let target_exists = target_path.as_ref().map(|p| p.exists()); // Check if target exists
                     (target_path, target_exists)
                 } else {
                     (None, None)
                 };
 
+                // Conditionally calculate SHA-256 hash if not disabled and it's a regular file
                 let hash = if !no_hash && file_type.is_file() {
                     calculate_sha256(path)
                 } else {
                     None
                 };
+                // Conditionally count lines if not disabled and it's a regular file
                 let lines = if !no_line_count && file_type.is_file() {
                     count_lines(path)
                 } else {
@@ -92,7 +102,7 @@ pub fn scan_directory(
                 };
 
                 Some(FileMetric {
-                    path: path.strip_prefix(root_path).ok()?.to_path_buf(),
+                    path: path.strip_prefix(root_path).ok()?.to_path_buf(), // Store path relative to root
                     size: metadata.len(),
                     modified: Some(modified),
                     created,
@@ -103,23 +113,25 @@ pub fn scan_directory(
                     lines,
                 })
             } else {
-                None
+                None // Ignore directories, they are handled in summary calculation
             }
         })
-        .collect();
+        .collect(); // Collect all FileMetrics into a vector
 
-    // Now, calculate the summary from the collected files
+    // Initialize summary statistics
     let mut summary = SnapshotSummary {
         total_files: files.len(),
         total_size: files.iter().map(|f| f.size).sum(),
         total_lines: files.iter().filter_map(|f| f.lines).sum(),
         file_type_breakdown: HashMap::new(),
         directory_breakdown: HashMap::new(),
-        total_directories: 0, // This will be calculated from the directory_breakdown
+        total_directories: 0, // Will be calculated from the directory_breakdown
         total_symlinks: files.iter().filter(|f| f.file_type == "symlink").count(),
     };
 
+    // Populate file type and directory breakdown statistics
     for file_metric in &files {
+        // Aggregate statistics by file type
         let file_type_stats = summary
             .file_type_breakdown
             .entry(file_metric.file_type.clone())
@@ -134,10 +146,11 @@ pub fn scan_directory(
             file_type_stats.total_lines += l;
         }
 
+        // Aggregate statistics for each directory in the file's path
         let mut current_path = file_metric.path.parent();
         while let Some(dir) = current_path {
             if dir.as_os_str().is_empty() {
-                break;
+                break; // Stop if we reach the root of the relative path
             }
             let depth = dir.components().count();
             let dir_stats = summary
@@ -155,13 +168,16 @@ pub fn scan_directory(
         }
     }
 
+    // Finalize total directory count
     summary.total_directories = summary.directory_breakdown.len();
 
+    // Finish progress bar and display summary message
     pb.finish_with_message(format!(
         "Scanned {} files and {} directories.",
         summary.total_files, summary.total_directories
     ));
 
+    // Construct and return the final Snapshot
     Ok(Snapshot {
         id,
         timestamp,
