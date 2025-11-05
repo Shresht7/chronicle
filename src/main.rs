@@ -1,11 +1,7 @@
-// Library
 use clap::{Parser, Subcommand};
 
-// ---
-// CLI
-// ---
+mod commands;
 
-// Command-Line-Interface
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 struct Cli {
@@ -13,28 +9,18 @@ struct Cli {
     command: Commands,
 }
 
-// SubCommands
 #[derive(Subcommand)]
 enum Commands {
     /// Takes a snapshot of a directory
-    Snapshot {
-        /// The path to the directory to snapshot
-        #[arg(value_name = "PATH", default_value = ".")]
-        path: String,
-    },
+    Snapshot(commands::snapshot::SnapshotCommand),
 }
 
-// ----
-// MAIN
-// ----
-
-// The main entrypoint of the application
 fn main() {
     let cli = Cli::parse();
 
-    match &cli.command {
-        Commands::Snapshot { path } => {
-            println!("Snapshot Target: {}", path);
+    match cli.command {
+        Commands::Snapshot(command) => {
+            commands::snapshot::execute(&command);
         }
     }
 }
