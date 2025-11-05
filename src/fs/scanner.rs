@@ -17,7 +17,7 @@ pub fn scan_directory(
     root_path: &Path,
     no_hash: bool,
     no_line_count: bool,
-    ignore_patterns: Vec<String>,
+    ignore_patterns: &[String],
 ) -> Result<Snapshot, Box<dyn std::error::Error>> {
     let timestamp = Utc::now();
     let id = uuid::Uuid::new_v4().to_string(); // Placeholder for unique ID
