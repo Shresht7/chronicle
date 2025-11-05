@@ -1,3 +1,2 @@
-pub mod scanner;
 pub mod helpers;
-
+pub mod scanner;

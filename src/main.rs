@@ -63,8 +63,24 @@ fn main() {
     let cli = Cli::parse();
 
     match &cli.command {
-        Commands::Snapshot { path, output, pretty, no_hash, no_line_count, ignore, max_size, follow_symlinks } => {
-            let snapshot_result = scanner::scan_directory(Path::new(&path), *no_hash, *no_line_count, &ignore, *max_size, *follow_symlinks);
+        Commands::Snapshot {
+            path,
+            output,
+            pretty,
+            no_hash,
+            no_line_count,
+            ignore,
+            max_size,
+            follow_symlinks,
+        } => {
+            let snapshot_result = scanner::scan_directory(
+                Path::new(&path),
+                *no_hash,
+                *no_line_count,
+                &ignore,
+                *max_size,
+                *follow_symlinks,
+            );
 
             match snapshot_result {
                 Ok(snapshot) => {

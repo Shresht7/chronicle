@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
-use std::path::PathBuf;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::path::PathBuf;
 
 /// A complete snapshot of repository state at a point in time
 #[derive(Debug, Clone, Serialize, Deserialize)]
