@@ -110,13 +110,13 @@ pub fn scan_directory(root_path: &Path) -> Result<Snapshot, Box<dyn std::error::
 
     // Calculate directory breakdown after all files are processed
     for file_metric in &files {
-        let mut current_path = PathBuf::new();
-        let mut depth = 0;
-        for component in file_metric.path.components() {
-            current_path.push(component);
-            depth += 1;
-
-            let dir_stats = summary.directory_breakdown.entry(current_path.clone()).or_insert_with(|| DirectoryStats {
+        let mut current_path = file_metric.path.parent();
+        while let Some(dir) = current_path {
+            if dir.as_os_str().is_empty() {
+                break;
+            }
+            let depth = dir.components().count();
+            let dir_stats = summary.directory_breakdown.entry(dir.to_path_buf()).or_insert_with(|| DirectoryStats {
                 file_count: 0,
                 total_size: 0,
                 depth: 0,
@@ -124,6 +124,8 @@ pub fn scan_directory(root_path: &Path) -> Result<Snapshot, Box<dyn std::error::
             dir_stats.file_count += 1;
             dir_stats.total_size += file_metric.size;
             dir_stats.depth = depth;
+
+            current_path = dir.parent();
         }
     }
 
