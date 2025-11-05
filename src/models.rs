@@ -27,4 +27,6 @@ pub struct FileMetric {
     pub modified: Option<DateTime<Utc>>,
     /// Creation time (filesystem snapshots)
     pub created: Option<DateTime<Utc>>,
+    /// File extension or type
+    pub file_type: String,
 }

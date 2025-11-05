@@ -25,11 +25,21 @@ pub fn scan_directory(root_path: &Path) -> Result<Snapshot, Box<dyn std::error::
             let created: Option<DateTime<Utc>> =
                 metadata.created().ok().and_then(|t| Some(t.into()));
 
+            let file_type = if metadata.is_symlink() {
+                "symlink".to_string()
+            } else {
+                path.extension()
+                    .and_then(|s| s.to_str())
+                    .unwrap_or("")
+                    .to_string()
+            };
+
             files.push(FileMetric {
                 path: path.strip_prefix(root_path)?.to_path_buf(),
                 size: metadata.len(),
                 modified: Some(modified),
                 created,
+                file_type,
             });
         }
     }
