@@ -21,10 +21,14 @@ pub fn scan_directory(root_path: &Path) -> Result<Snapshot, Box<dyn std::error::
         if path.is_file() {
             let metadata = entry.metadata()?;
             let modified: DateTime<Utc> = metadata.modified()?.into();
+            let created: Option<DateTime<Utc>> = metadata.created().ok()
+                .and_then(|t| Some(t.into()));
+
             files.push(FileMetric {
                 path: path.strip_prefix(root_path)?.to_path_buf(),
                 size: metadata.len(),
                 modified: Some(modified),
+                created,
             });
         }
     }

@@ -25,4 +25,6 @@ pub struct FileMetric {
     pub size: u64,
     /// Last modified time (filesystem snapshots)
     pub modified: Option<DateTime<Utc>>,
+    /// Creation time (filesystem snapshots)
+    pub created: Option<DateTime<Utc>>,
 }
