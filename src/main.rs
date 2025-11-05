@@ -39,6 +39,10 @@ enum Commands {
         /// Do not count lines of code (default: false)
         #[arg(long, default_value_t = false)]
         no_line_count: bool,
+
+        /// Additional ignore patterns (e.g., "*.log", "temp/")
+        #[arg(short, long)]
+        ignore: Vec<String>,
     },
 }
 
@@ -57,9 +61,10 @@ fn main() {
             pretty,
             no_hash,
             no_line_count,
+            ignore,
         } => {
             let snapshot_result =
-                scanner::scan_directory(Path::new(&path), *no_hash, *no_line_count);
+                scanner::scan_directory(Path::new(&path), *no_hash, *no_line_count, ignore.clone());
 
             match snapshot_result {
                 Ok(snapshot) => {

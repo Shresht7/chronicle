@@ -17,6 +17,7 @@ pub fn scan_directory(
     root_path: &Path,
     no_hash: bool,
     no_line_count: bool,
+    ignore_patterns: Vec<String>,
 ) -> Result<Snapshot, Box<dyn std::error::Error>> {
     let timestamp = Utc::now();
     let id = uuid::Uuid::new_v4().to_string(); // Placeholder for unique ID
@@ -30,8 +31,13 @@ pub fn scan_directory(
     pb.set_message(format!("Scanning {}", root_path.display()));
     pb.enable_steady_tick(std::time::Duration::from_millis(100));
 
+    let mut walk_builder = WalkBuilder::new(root_path);
+    for pattern in ignore_patterns {
+        walk_builder.add_ignore(pattern);
+    }
+
     // Walk the directory and bridge to a parallel iterator
-    let files: Vec<FileMetric> = WalkBuilder::new(root_path)
+    let files: Vec<FileMetric> = walk_builder
         .build()
         .filter_map(|result| result.ok())
         .par_bridge()
