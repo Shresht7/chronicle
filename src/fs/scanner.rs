@@ -34,12 +34,22 @@ pub fn scan_directory(root_path: &Path) -> Result<Snapshot, Box<dyn std::error::
                     .to_string()
             };
 
+            let (symlink_target, symlink_target_exists) = if metadata.is_symlink() {
+                let target_path = std::fs::read_link(path).ok();
+                let target_exists = target_path.as_ref().map(|p| p.exists());
+                (target_path, target_exists)
+            } else {
+                (None, None)
+            };
+
             files.push(FileMetric {
                 path: path.strip_prefix(root_path)?.to_path_buf(),
                 size: metadata.len(),
                 modified: Some(modified),
                 created,
                 file_type,
+                symlink_target,
+                symlink_target_exists,
             });
         }
     }
