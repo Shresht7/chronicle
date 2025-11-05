@@ -38,15 +38,17 @@ pub fn calculate_sha256(path: &Path, buffer_size: Option<usize>) -> Option<Strin
 /// Skips files larger than 1MB for performance reasons.
 /// Returns None if the file appears to be binary.
 pub fn count_lines(path: &Path, buffer_size: Option<usize>) -> Option<usize> {
+    let buf_size = buffer_size.unwrap_or(DEFAULT_LINE_COUNT_BUFFER_SIZE);
     if let Ok(metadata) = path.metadata() {
-        if metadata.len() > DEFAULT_LINE_COUNT_BUFFER_SIZE as u64 {
-            // 1MB limit
+        if metadata.len() > buf_size as u64 {
+            // Use the configurable buffer size here
             return None;
         }
     }
 
     let file = File::open(path).ok()?;
-    let reader = BufReader::new(file);
+    // Create BufReader with the specified buffer size
+    let reader = BufReader::with_capacity(buf_size, file);
 
     let mut line_count = 0;
     for line in reader.lines() {
