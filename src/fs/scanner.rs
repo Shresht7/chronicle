@@ -1,9 +1,10 @@
 use chrono::{DateTime, Utc};
+use std::path::{Path, PathBuf};
 use ignore::WalkBuilder;
-use std::path::Path;
+use std::collections::HashMap;
 
+use crate::models::{FileMetric, Snapshot, SnapshotSummary, FileTypeStats, DirectoryStats};
 use super::helpers::{calculate_sha256, count_lines};
-use crate::models::{FileMetric, Snapshot};
 
 /// Scans a given directory and creates a `Snapshot` of its contents.
 ///
@@ -12,6 +13,15 @@ use crate::models::{FileMetric, Snapshot};
 /// It respects `.gitignore` files by using `ignore::WalkBuilder`.
 pub fn scan_directory(root_path: &Path) -> Result<Snapshot, Box<dyn std::error::Error>> {
     let mut files = Vec::new();
+    let mut summary = SnapshotSummary {
+        total_files: 0,
+        total_size: 0,
+        total_lines: 0,
+        file_type_breakdown: HashMap::new(),
+        directory_breakdown: HashMap::new(),
+        total_directories: 0,
+        total_symlinks: 0,
+    };
 
     let timestamp = Utc::now();
     let id = uuid::Uuid::new_v4().to_string(); // Placeholder for unique ID
@@ -21,13 +31,12 @@ pub fn scan_directory(root_path: &Path) -> Result<Snapshot, Box<dyn std::error::
         let path = entry.path();
         let file_type = entry.file_type();
 
-        // Process only regular files and symlinks
         if let Some(ft) = file_type {
             if ft.is_file() || ft.is_symlink() {
                 let metadata = entry.metadata()?;
                 let modified: DateTime<Utc> = metadata.modified()?.into();
-                let created: Option<DateTime<Utc>> =
-                    metadata.created().ok().and_then(|t| Some(t.into()));
+                let created: Option<DateTime<Utc>> = metadata.created().ok()
+                    .and_then(|t| Some(t.into()));
 
                 let file_type_str = if ft.is_symlink() {
                     "symlink".to_string()
@@ -58,18 +67,63 @@ pub fn scan_directory(root_path: &Path) -> Result<Snapshot, Box<dyn std::error::
                     None
                 };
 
-                files.push(FileMetric {
+                let file_metric = FileMetric {
                     path: path.strip_prefix(root_path)?.to_path_buf(),
                     size: metadata.len(),
                     modified: Some(modified),
                     created,
-                    file_type: file_type_str,
+                    file_type: file_type_str.clone(),
                     symlink_target,
                     symlink_target_exists,
                     hash,
                     lines,
+                };
+
+                // Update summary statistics for files/symlinks
+                summary.total_files += 1;
+                summary.total_size += file_metric.size;
+                if let Some(l) = file_metric.lines {
+                    summary.total_lines += l;
+                }
+                if ft.is_symlink() {
+                    summary.total_symlinks += 1;
+                }
+
+                // Update file type breakdown
+                let file_type_stats = summary.file_type_breakdown.entry(file_type_str).or_insert_with(|| FileTypeStats {
+                    count: 0,
+                    total_size: 0,
+                    total_lines: 0,
                 });
+                file_type_stats.count += 1;
+                file_type_stats.total_size += file_metric.size;
+                if let Some(l) = file_metric.lines {
+                    file_type_stats.total_lines += l;
+                }
+
+                files.push(file_metric);
+            } else if ft.is_dir() {
+                summary.total_directories += 1;
             }
+        }
+    }
+
+    // Calculate directory breakdown after all files are processed
+    for file_metric in &files {
+        let mut current_path = PathBuf::new();
+        let mut depth = 0;
+        for component in file_metric.path.components() {
+            current_path.push(component);
+            depth += 1;
+
+            let dir_stats = summary.directory_breakdown.entry(current_path.clone()).or_insert_with(|| DirectoryStats {
+                file_count: 0,
+                total_size: 0,
+                depth: 0,
+            });
+            dir_stats.file_count += 1;
+            dir_stats.total_size += file_metric.size;
+            dir_stats.depth = depth;
         }
     }
 
@@ -78,5 +132,6 @@ pub fn scan_directory(root_path: &Path) -> Result<Snapshot, Box<dyn std::error::
         timestamp,
         repo_path: root_path.to_path_buf(),
         files,
+        summary,
     })
 }
