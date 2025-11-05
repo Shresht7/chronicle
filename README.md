@@ -4,11 +4,22 @@ A Rust-based tool to record, analyze, and visualize how files and projects evolv
 
 **Chronicle** tracks the evolution of your code, notes, and projects - preserving the story of how they grow and change.
 
+## Vision
+
+Chronicle's core mission is to empower users to understand the historical evolution of their digital workspaces. By taking regular, efficient snapshots of specified directories, Chronicle builds a rich timeline of changes—documenting file additions, deletions, modifications, and structural shifts. This historical data then serves as the foundation for powerful analysis and visualization tools, allowing users to:
+
+*   **Track Growth**: Monitor how projects, codebases, or personal notes grow in terms of file count, size, and lines of code over days, weeks, or months.
+*   **Identify Trends**: Spot patterns in development, such as periods of high activity, refactoring efforts, or shifts in technology usage.
+*   **Visualize Evolution**: Generate interactive graphs and charts that illustrate changes in directory structure, file types, and content over time.
+*   **Optimize Workflows**: Gain insights into personal or team productivity by understanding where changes are concentrated and how different parts of a project evolve.
+
+Ultimately, Chronicle aims to provide a "time machine" for your filesystem, enabling you to revisit past states, understand the journey of your projects, and make informed decisions about their future.
+
 ## Current Status
 
 **Phase 0: Filesystem Snapshots - COMPLETE!**
 
-This phase focused on building a robust filesystem snapshot capability, which is now fully implemented. You can use the `snapshot` command to capture the state of any directory, with various options for customization.
+This phase focused on building a robust filesystem snapshot capability, which is now fully implemented. The `snapshot` command has been enhanced to not only capture the current state of any directory but also to intelligently record and persist these snapshots, only storing new data when changes are detected. This lays the groundwork for efficient, automated historical tracking.
 
 ## Usage
 
