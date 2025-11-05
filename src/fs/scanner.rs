@@ -6,7 +6,11 @@ use std::collections::HashMap;
 use std::path::Path;
 
 use super::helpers::{calculate_sha256, count_lines};
-use crate::models::{DirectoryStats, FileMetric, FileTypeStats, Snapshot, SnapshotSummary};
+use crate::models::{
+    file_metric::FileMetric,
+    snapshot::Snapshot,
+    snapshot_summary::{DirectoryStats, FileTypeStats, SnapshotSummary},
+};
 
 /// Scans a given directory and creates a `Snapshot` of its contents in parallel.
 ///
