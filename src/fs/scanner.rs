@@ -18,6 +18,7 @@ pub fn scan_directory(
     no_hash: bool,
     no_line_count: bool,
     ignore_patterns: &[String],
+    max_size: Option<u64>,
 ) -> Result<Snapshot, Box<dyn std::error::Error>> {
     let timestamp = Utc::now();
     let id = uuid::Uuid::new_v4().to_string(); // Placeholder for unique ID
@@ -47,6 +48,12 @@ pub fn scan_directory(
 
             if file_type.is_file() || file_type.is_symlink() {
                 let metadata = entry.metadata().ok()?;
+
+                if let Some(max_s) = max_size {
+                    if metadata.len() > max_s {
+                        return None;
+                    }
+                }
                 let modified: DateTime<Utc> = metadata.modified().ok()?.into();
                 let created: Option<DateTime<Utc>> = metadata.created().ok().map(|t| t.into());
 

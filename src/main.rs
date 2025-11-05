@@ -43,6 +43,10 @@ enum Commands {
         /// Additional ignore patterns (e.g., "*.log", "temp/")
         #[arg(short, long)]
         ignore: Vec<String>,
+
+        /// Skip files larger than this size in bytes
+        #[arg(long)]
+        max_size: Option<u64>,
     },
 }
 
@@ -62,9 +66,15 @@ fn main() {
             no_hash,
             no_line_count,
             ignore,
+            max_size,
         } => {
-            let snapshot_result =
-                scanner::scan_directory(Path::new(&path), *no_hash, *no_line_count, &ignore);
+            let snapshot_result = scanner::scan_directory(
+                Path::new(&path),
+                *no_hash,
+                *no_line_count,
+                &ignore,
+                *max_size,
+            );
 
             match snapshot_result {
                 Ok(snapshot) => {
