@@ -16,6 +16,7 @@ use crate::models::{DirectoryStats, FileMetric, FileTypeStats, Snapshot, Snapsho
 pub fn scan_directory(
     root_path: &Path,
     no_hash: bool,
+    no_line_count: bool,
 ) -> Result<Snapshot, Box<dyn std::error::Error>> {
     let timestamp = Utc::now();
     let id = uuid::Uuid::new_v4().to_string(); // Placeholder for unique ID
@@ -65,7 +66,7 @@ pub fn scan_directory(
                 } else {
                     None
                 };
-                let lines = if file_type.is_file() {
+                let lines = if !no_line_count && file_type.is_file() {
                     count_lines(path)
                 } else {
                     None

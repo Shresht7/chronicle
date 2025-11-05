@@ -35,6 +35,10 @@ enum Commands {
         /// Do not calculate content hashes (default: false)
         #[arg(long, default_value_t = false)]
         no_hash: bool,
+
+        /// Do not count lines of code (default: false)
+        #[arg(long, default_value_t = false)]
+        no_line_count: bool,
     },
 }
 
@@ -52,8 +56,10 @@ fn main() {
             output,
             pretty,
             no_hash,
+            no_line_count,
         } => {
-            let snapshot_result = scanner::scan_directory(Path::new(&path), *no_hash);
+            let snapshot_result =
+                scanner::scan_directory(Path::new(&path), *no_hash, *no_line_count);
 
             match snapshot_result {
                 Ok(snapshot) => {
