@@ -33,4 +33,6 @@ pub struct FileMetric {
     pub symlink_target: Option<PathBuf>,
     /// For symlinks, whether the target exists
     pub symlink_target_exists: Option<bool>,
+    /// Content hash (for detecting renames/moves)
+    pub hash: Option<String>,
 }

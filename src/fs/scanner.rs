@@ -1,9 +1,9 @@
-// Library
 use chrono::{DateTime, Utc};
+use std::path::{Path, PathBuf};
 use ignore::WalkBuilder;
-use std::path::Path;
 
 use crate::models::{FileMetric, Snapshot};
+use super::helpers::calculate_sha256;
 
 /// Scans a given directory and creates a `Snapshot` of its contents.
 ///
@@ -26,8 +26,8 @@ pub fn scan_directory(root_path: &Path) -> Result<Snapshot, Box<dyn std::error::
             if ft.is_file() || ft.is_symlink() {
                 let metadata = entry.metadata()?;
                 let modified: DateTime<Utc> = metadata.modified()?.into();
-                let created: Option<DateTime<Utc>> =
-                    metadata.created().ok().and_then(|t| Some(t.into()));
+                let created: Option<DateTime<Utc>> = metadata.created().ok()
+                    .and_then(|t| Some(t.into()));
 
                 let file_type_str = if ft.is_symlink() {
                     "symlink".to_string()
@@ -46,6 +46,12 @@ pub fn scan_directory(root_path: &Path) -> Result<Snapshot, Box<dyn std::error::
                     (None, None)
                 };
 
+                let hash = if ft.is_file() {
+                    calculate_sha256(path)
+                } else {
+                    None
+                };
+
                 files.push(FileMetric {
                     path: path.strip_prefix(root_path)?.to_path_buf(),
                     size: metadata.len(),
@@ -54,6 +60,7 @@ pub fn scan_directory(root_path: &Path) -> Result<Snapshot, Box<dyn std::error::
                     file_type: file_type_str,
                     symlink_target,
                     symlink_target_exists,
+                    hash,
                 });
             }
         }
