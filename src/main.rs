@@ -64,7 +64,7 @@ fn main() {
             ignore,
         } => {
             let snapshot_result =
-                scanner::scan_directory(Path::new(&path), *no_hash, *no_line_count, ignore.clone());
+                scanner::scan_directory(Path::new(&path), *no_hash, *no_line_count, &ignore);
 
             match snapshot_result {
                 Ok(snapshot) => {
