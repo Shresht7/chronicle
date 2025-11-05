@@ -1,10 +1,11 @@
 use chrono::{DateTime, Utc};
-use std::path::Path;
 use ignore::WalkBuilder;
+use indicatif::{ProgressBar, ProgressStyle};
 use std::collections::HashMap;
+use std::path::Path;
 
-use crate::models::{FileMetric, Snapshot, SnapshotSummary, FileTypeStats, DirectoryStats};
 use super::helpers::{calculate_sha256, count_lines};
+use crate::models::{DirectoryStats, FileMetric, FileTypeStats, Snapshot, SnapshotSummary};
 
 /// Scans a given directory and creates a `Snapshot` of its contents.
 ///
@@ -26,8 +27,24 @@ pub fn scan_directory(root_path: &Path) -> Result<Snapshot, Box<dyn std::error::
     let timestamp = Utc::now();
     let id = uuid::Uuid::new_v4().to_string(); // Placeholder for unique ID
 
+    let pb = ProgressBar::new_spinner();
+    pb.set_style(
+        ProgressStyle::default_spinner()
+            .template("{spinner:.green} {msg}")
+            .unwrap(),
+    );
+    pb.set_message(format!("Scanning {}", root_path.display()));
+    pb.enable_steady_tick(std::time::Duration::from_millis(100));
+
     // Walk the directory collecting the metadata for each file, respecting .gitignore
     for entry in WalkBuilder::new(root_path).build().filter_map(|e| e.ok()) {
+        pb.inc(1);
+        pb.set_message(format!(
+            "Scanning {} - {}",
+            root_path.display(),
+            entry.path().display()
+        ));
+
         let path = entry.path();
         let file_type = entry.file_type();
 
@@ -35,8 +52,8 @@ pub fn scan_directory(root_path: &Path) -> Result<Snapshot, Box<dyn std::error::
             if ft.is_file() || ft.is_symlink() {
                 let metadata = entry.metadata()?;
                 let modified: DateTime<Utc> = metadata.modified()?.into();
-                let created: Option<DateTime<Utc>> = metadata.created().ok()
-                    .and_then(|t| Some(t.into()));
+                let created: Option<DateTime<Utc>> =
+                    metadata.created().ok().and_then(|t| Some(t.into()));
 
                 let file_type_str = if ft.is_symlink() {
                     "symlink".to_string()
@@ -90,11 +107,14 @@ pub fn scan_directory(root_path: &Path) -> Result<Snapshot, Box<dyn std::error::
                 }
 
                 // Update file type breakdown
-                let file_type_stats = summary.file_type_breakdown.entry(file_type_str).or_insert_with(|| FileTypeStats {
-                    count: 0,
-                    total_size: 0,
-                    total_lines: 0,
-                });
+                let file_type_stats = summary
+                    .file_type_breakdown
+                    .entry(file_type_str)
+                    .or_insert_with(|| FileTypeStats {
+                        count: 0,
+                        total_size: 0,
+                        total_lines: 0,
+                    });
                 file_type_stats.count += 1;
                 file_type_stats.total_size += file_metric.size;
                 if let Some(l) = file_metric.lines {
@@ -116,11 +136,14 @@ pub fn scan_directory(root_path: &Path) -> Result<Snapshot, Box<dyn std::error::
                 break;
             }
             let depth = dir.components().count();
-            let dir_stats = summary.directory_breakdown.entry(dir.to_path_buf()).or_insert_with(|| DirectoryStats {
-                file_count: 0,
-                total_size: 0,
-                depth: 0,
-            });
+            let dir_stats = summary
+                .directory_breakdown
+                .entry(dir.to_path_buf())
+                .or_insert_with(|| DirectoryStats {
+                    file_count: 0,
+                    total_size: 0,
+                    depth: 0,
+                });
             dir_stats.file_count += 1;
             dir_stats.total_size += file_metric.size;
             dir_stats.depth = depth;
@@ -128,6 +151,11 @@ pub fn scan_directory(root_path: &Path) -> Result<Snapshot, Box<dyn std::error::
             current_path = dir.parent();
         }
     }
+
+    pb.finish_with_message(format!(
+        "Scanned {} files and {} directories.",
+        summary.total_files, summary.total_directories
+    ));
 
     Ok(Snapshot {
         id,
