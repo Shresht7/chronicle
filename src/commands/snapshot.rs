@@ -37,6 +37,14 @@ pub struct SnapshotCommand {
     /// Follow symbolic links (default: false)
     #[arg(long, default_value_t = false)]
     pub follow_symlinks: bool,
+
+    /// Buffer size in bytes for hashing files (default: 1MB)
+    #[arg(long, default_value_t = 1048576)]
+    pub hash_buffer_size: usize,
+
+    /// Buffer size in bytes for counting lines (default: 1MB)
+    #[arg(long, default_value_t = 1048576)]
+    pub line_count_buffer_size: usize,
 }
 
 pub fn execute(command: &SnapshotCommand) {
@@ -47,6 +55,8 @@ pub fn execute(command: &SnapshotCommand) {
         &command.ignore,
         command.max_size,
         command.follow_symlinks,
+        Some(command.hash_buffer_size),
+        Some(command.line_count_buffer_size),
     );
 
     match snapshot_result {

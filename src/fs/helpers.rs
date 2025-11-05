@@ -3,12 +3,14 @@ use std::fs::File;
 use std::io::{self, BufRead, BufReader};
 use std::path::Path;
 
-const HASH_BUFFER_SIZE: usize = 1024 * 1024; // 1MB
-const LINE_COUNT_BUFFER_SIZE: usize = 1024 * 1024; // 1MB
+/// Default buffer size for hashing (1MB)
+const DEFAULT_HASH_BUFFER_SIZE: usize = 1024 * 1024;
+/// Default buffer size for line counting (1MB)
+const DEFAULT_LINE_COUNT_BUFFER_SIZE: usize = 1024 * 1024;
 
 /// Calculates the SHA-256 hash of a file.
 /// Skips files larger than 100MB for performance reasons.
-pub fn calculate_sha256(path: &Path) -> Option<String> {
+pub fn calculate_sha256(path: &Path, buffer_size: Option<usize>) -> Option<String> {
     if let Ok(metadata) = path.metadata() {
         if metadata.len() > 100 * 1024 * 1024 {
             // 100MB limit
@@ -18,7 +20,8 @@ pub fn calculate_sha256(path: &Path) -> Option<String> {
 
     let mut file = File::open(path).ok()?;
     let mut hasher = Sha256::new();
-    let mut buffer = vec![0; HASH_BUFFER_SIZE];
+    let buf_size = buffer_size.unwrap_or(DEFAULT_HASH_BUFFER_SIZE);
+    let mut buffer = vec![0; buf_size];
 
     loop {
         let bytes_read = io::Read::read(&mut file, &mut buffer).ok()?;
@@ -34,9 +37,9 @@ pub fn calculate_sha256(path: &Path) -> Option<String> {
 /// Counts the number of lines in a file.
 /// Skips files larger than 1MB for performance reasons.
 /// Returns None if the file appears to be binary.
-pub fn count_lines(path: &Path) -> Option<usize> {
+pub fn count_lines(path: &Path, buffer_size: Option<usize>) -> Option<usize> {
     if let Ok(metadata) = path.metadata() {
-        if metadata.len() > LINE_COUNT_BUFFER_SIZE as u64 {
+        if metadata.len() > DEFAULT_LINE_COUNT_BUFFER_SIZE as u64 {
             // 1MB limit
             return None;
         }
@@ -70,7 +73,7 @@ mod tests {
         let content = b"hello world";
         file.write_all(content).unwrap();
 
-        let hash = calculate_sha256(file.path());
+        let hash = calculate_sha256(file.path(), None);
         let expected_hash =
             Some("b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9".to_string());
 
@@ -83,7 +86,7 @@ mod tests {
         let content = b"hello\nworld\n";
         file.write_all(content).unwrap();
 
-        let lines = count_lines(file.path());
+        let lines = count_lines(file.path(), None);
         assert_eq!(lines, Some(2));
     }
 
@@ -93,7 +96,7 @@ mod tests {
         let content = b"hello\nworld";
         file.write_all(content).unwrap();
 
-        let lines = count_lines(file.path());
+        let lines = count_lines(file.path(), None);
         assert_eq!(lines, Some(2));
     }
 
@@ -103,7 +106,7 @@ mod tests {
         let content = b"\x00\x01\x02\x03";
         file.write_all(content).unwrap();
 
-        let lines = count_lines(file.path());
+        let lines = count_lines(file.path(), None);
         assert_eq!(lines, None);
     }
 }

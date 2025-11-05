@@ -24,6 +24,8 @@ pub fn scan_directory(
     ignore_patterns: &[String],
     max_size: Option<u64>,
     follow_symlinks: bool,
+    hash_buffer_size: Option<usize>,
+    line_count_buffer_size: Option<usize>,
 ) -> Result<Snapshot, Box<dyn std::error::Error>> {
     let timestamp = Utc::now();
     let id = uuid::Uuid::new_v4().to_string(); // Generate a unique ID for the snapshot
@@ -90,13 +92,13 @@ pub fn scan_directory(
 
                 // Conditionally calculate SHA-256 hash if not disabled and it's a regular file
                 let hash = if !no_hash && file_type.is_file() {
-                    calculate_sha256(path)
+                    calculate_sha256(path, hash_buffer_size)
                 } else {
                     None
                 };
                 // Conditionally count lines if not disabled and it's a regular file
                 let lines = if !no_line_count && file_type.is_file() {
-                    count_lines(path)
+                    count_lines(path, line_count_buffer_size)
                 } else {
                     None
                 };
