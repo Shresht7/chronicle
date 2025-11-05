@@ -1,13 +1,7 @@
 use clap::{Parser, Subcommand};
-use std::path::Path;
 
-use chronicle::fs::scanner;
+mod commands;
 
-// ---
-// CLI
-// ---
-
-// Command-Line-Interface
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 struct Cli {
@@ -15,95 +9,18 @@ struct Cli {
     command: Commands,
 }
 
-// SubCommands
 #[derive(Subcommand)]
 enum Commands {
     /// Takes a snapshot of a directory
-    Snapshot {
-        /// The path to the directory to snapshot
-        #[arg(value_name = "PATH", default_value = ".")]
-        path: String,
-
-        /// The path to the output file
-        #[arg(short, long, value_name = "FILE")]
-        output: Option<String>,
-
-        /// Pretty-print JSON output (default: false)
-        #[arg(long, default_value_t = false)]
-        pretty: bool,
-
-        /// Do not calculate content hashes (default: false)
-        #[arg(long, default_value_t = false)]
-        no_hash: bool,
-
-        /// Do not count lines of code (default: false)
-        #[arg(long, default_value_t = false)]
-        no_line_count: bool,
-
-        /// Additional ignore patterns (e.g., "*.log", "temp/")
-        #[arg(short, long)]
-        ignore: Vec<String>,
-
-        /// Skip files larger than this size in bytes
-        #[arg(long)]
-        max_size: Option<u64>,
-
-        /// Follow symbolic links (default: false)
-        #[arg(long, default_value_t = false)]
-        follow_symlinks: bool,
-    },
+    Snapshot(commands::snapshot::SnapshotCommand),
 }
 
-// ----
-// MAIN
-// ----
-
-// The main entrypoint of the application
 fn main() {
     let cli = Cli::parse();
 
-    match &cli.command {
-        Commands::Snapshot {
-            path,
-            output,
-            pretty,
-            no_hash,
-            no_line_count,
-            ignore,
-            max_size,
-            follow_symlinks,
-        } => {
-            let snapshot_result = scanner::scan_directory(
-                Path::new(&path),
-                *no_hash,
-                *no_line_count,
-                &ignore,
-                *max_size,
-                *follow_symlinks,
-            );
-
-            match snapshot_result {
-                Ok(snapshot) => {
-                    let json = if *pretty {
-                        serde_json::to_string_pretty(&snapshot).unwrap()
-                    } else {
-                        serde_json::to_string(&snapshot).unwrap()
-                    };
-                    match output {
-                        Some(file_path) => {
-                            if let Err(e) = std::fs::write(file_path, json) {
-                                eprintln!("Error writing to file: {}", e);
-                            }
-                        }
-                        None => {
-                            println!("{}", json);
-                        }
-                    }
-                }
-                Err(e) => {
-                    eprintln!("Error scanning directory: {}", e);
-                }
-            }
+    match cli.command {
+        Commands::Snapshot(command) => {
+            commands::snapshot::execute(&command);
         }
     }
 }
