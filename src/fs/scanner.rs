@@ -13,7 +13,10 @@ use crate::models::{DirectoryStats, FileMetric, FileTypeStats, Snapshot, Snapsho
 /// This function walks through the directory in parallel, collects metadata for each file,
 /// and stores it as `FileMetric` within a `Snapshot`.
 /// It respects `.gitignore` files by using `ignore::WalkBuilder`.
-pub fn scan_directory(root_path: &Path) -> Result<Snapshot, Box<dyn std::error::Error>> {
+pub fn scan_directory(
+    root_path: &Path,
+    no_hash: bool,
+) -> Result<Snapshot, Box<dyn std::error::Error>> {
     let timestamp = Utc::now();
     let id = uuid::Uuid::new_v4().to_string(); // Placeholder for unique ID
 
@@ -57,7 +60,7 @@ pub fn scan_directory(root_path: &Path) -> Result<Snapshot, Box<dyn std::error::
                     (None, None)
                 };
 
-                let hash = if file_type.is_file() {
+                let hash = if !no_hash && file_type.is_file() {
                     calculate_sha256(path)
                 } else {
                     None

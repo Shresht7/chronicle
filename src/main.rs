@@ -31,6 +31,10 @@ enum Commands {
         /// Pretty-print JSON output (default: false)
         #[arg(long, default_value_t = false)]
         pretty: bool,
+
+        /// Do not calculate content hashes (default: false)
+        #[arg(long, default_value_t = false)]
+        no_hash: bool,
     },
 }
 
@@ -47,8 +51,9 @@ fn main() {
             path,
             output,
             pretty,
+            no_hash,
         } => {
-            let snapshot_result = scanner::scan_directory(Path::new(path));
+            let snapshot_result = scanner::scan_directory(Path::new(&path), *no_hash);
 
             match snapshot_result {
                 Ok(snapshot) => {
