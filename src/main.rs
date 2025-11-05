@@ -27,6 +27,10 @@ enum Commands {
         /// The path to the output file
         #[arg(short, long, value_name = "FILE")]
         output: Option<String>,
+
+        /// Pretty-print JSON output (default: false)
+        #[arg(long, default_value_t = false)]
+        pretty: bool,
     },
 }
 
@@ -39,12 +43,20 @@ fn main() {
     let cli = Cli::parse();
 
     match &cli.command {
-        Commands::Snapshot { path, output } => {
+        Commands::Snapshot {
+            path,
+            output,
+            pretty,
+        } => {
             let snapshot_result = scanner::scan_directory(Path::new(path));
 
             match snapshot_result {
                 Ok(snapshot) => {
-                    let json = serde_json::to_string_pretty(&snapshot).unwrap();
+                    let json = if *pretty {
+                        serde_json::to_string_pretty(&snapshot).unwrap()
+                    } else {
+                        serde_json::to_string(&snapshot).unwrap()
+                    };
                     match output {
                         Some(file_path) => {
                             if let Err(e) = std::fs::write(file_path, json) {
