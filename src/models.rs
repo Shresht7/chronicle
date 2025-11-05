@@ -35,4 +35,6 @@ pub struct FileMetric {
     pub symlink_target_exists: Option<bool>,
     /// Content hash (for detecting renames/moves)
     pub hash: Option<String>,
+    /// Number of lines (if text file)
+    pub lines: Option<usize>,
 }
