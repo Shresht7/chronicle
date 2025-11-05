@@ -47,6 +47,10 @@ enum Commands {
         /// Skip files larger than this size in bytes
         #[arg(long)]
         max_size: Option<u64>,
+
+        /// Follow symbolic links (default: false)
+        #[arg(long, default_value_t = false)]
+        follow_symlinks: bool,
     },
 }
 
@@ -59,22 +63,8 @@ fn main() {
     let cli = Cli::parse();
 
     match &cli.command {
-        Commands::Snapshot {
-            path,
-            output,
-            pretty,
-            no_hash,
-            no_line_count,
-            ignore,
-            max_size,
-        } => {
-            let snapshot_result = scanner::scan_directory(
-                Path::new(&path),
-                *no_hash,
-                *no_line_count,
-                &ignore,
-                *max_size,
-            );
+        Commands::Snapshot { path, output, pretty, no_hash, no_line_count, ignore, max_size, follow_symlinks } => {
+            let snapshot_result = scanner::scan_directory(Path::new(&path), *no_hash, *no_line_count, &ignore, *max_size, *follow_symlinks);
 
             match snapshot_result {
                 Ok(snapshot) => {
