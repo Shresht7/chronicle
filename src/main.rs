@@ -36,9 +36,7 @@ fn main() {
 
     match &cli.command {
         Commands::Snapshot { path } => {
-            println!("Scanning directory: {}", path);
             let snapshot_result = scanner::scan_directory(Path::new(path));
-
             match snapshot_result {
                 Ok(snapshot) => {
                     let json = serde_json::to_string_pretty(&snapshot).unwrap();
