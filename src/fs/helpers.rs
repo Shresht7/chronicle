@@ -1,37 +1,30 @@
 use sha2::{Digest, Sha256};
 use std::fs::File;
-use std::io::{BufRead, BufReader, Read};
+use std::io::{self, BufRead, BufReader};
 use std::path::Path;
 
-const MAX_HASH_FILE_SIZE: u64 = 100 * 1024 * 1024; // 100 MB
-const MAX_LINE_COUNT_FILE_SIZE: u64 = 5 * 1024 * 1024; // 5 MB
+const HASH_BUFFER_SIZE: usize = 1024 * 1024; // 1MB
+const LINE_COUNT_BUFFER_SIZE: usize = 1024 * 1024; // 1MB
 
 /// Calculates the SHA-256 hash of a file.
-/// Returns `None` if the file is larger than `MAX_HASH_FILE_SIZE` or on error.
+/// Skips files larger than 100MB for performance reasons.
 pub fn calculate_sha256(path: &Path) -> Option<String> {
-    let mut file = match File::open(path) {
-        Ok(file) => file,
-        Err(_) => return None,
-    };
-
-    let metadata = match file.metadata() {
-        Ok(metadata) => metadata,
-        Err(_) => return None,
-    };
-
-    if metadata.len() > MAX_HASH_FILE_SIZE {
-        return None; // Skip hashing for large files
+    if let Ok(metadata) = path.metadata() {
+        if metadata.len() > 100 * 1024 * 1024 {
+            // 100MB limit
+            return None;
+        }
     }
 
+    let mut file = File::open(path).ok()?;
     let mut hasher = Sha256::new();
-    let mut buffer = [0; 1024];
+    let mut buffer = vec![0; HASH_BUFFER_SIZE];
 
     loop {
-        let bytes_read = match file.read(&mut buffer) {
-            Ok(0) => break,
-            Ok(bytes) => bytes,
-            Err(_) => return None,
-        };
+        let bytes_read = io::Read::read(&mut file, &mut buffer).ok()?;
+        if bytes_read == 0 {
+            break;
+        }
         hasher.update(&buffer[..bytes_read]);
     }
 
@@ -39,38 +32,78 @@ pub fn calculate_sha256(path: &Path) -> Option<String> {
 }
 
 /// Counts the number of lines in a file.
-/// Returns `None` if the file is binary, larger than `MAX_LINE_COUNT_FILE_SIZE`, or on error.
+/// Skips files larger than 1MB for performance reasons.
+/// Returns None if the file appears to be binary.
 pub fn count_lines(path: &Path) -> Option<usize> {
-    let file = match File::open(path) {
-        Ok(file) => file,
-        Err(_) => return None,
-    };
-
-    let metadata = match file.metadata() {
-        Ok(metadata) => metadata,
-        Err(_) => return None,
-    };
-
-    if metadata.len() > MAX_LINE_COUNT_FILE_SIZE {
-        return None; // Skip line counting for large files
+    if let Ok(metadata) = path.metadata() {
+        if metadata.len() > LINE_COUNT_BUFFER_SIZE as u64 {
+            // 1MB limit
+            return None;
+        }
     }
 
-    let mut reader = BufReader::new(file);
-    let mut buffer = [0; 1024];
-
-    // Check for null bytes in the first 1KB to guess if it's a binary file
-    let bytes_read = match reader.read(&mut buffer) {
-        Ok(bytes) => bytes,
-        Err(_) => return None,
-    };
-
-    if buffer[..bytes_read].contains(&0) {
-        return None; // It's likely a binary file
-    }
-
-    // We need to create a new reader because the previous one consumed the first 1KB
     let file = File::open(path).ok()?;
     let reader = BufReader::new(file);
 
-    Some(reader.lines().count())
+    let mut line_count = 0;
+    for line in reader.lines() {
+        let line = line.ok()?;
+        // Check for null bytes to detect binary files
+        if line.as_bytes().contains(&0) {
+            return None;
+        }
+        line_count += 1;
+    }
+
+    Some(line_count)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Write;
+    use tempfile::NamedTempFile;
+
+    #[test]
+    fn test_calculate_sha256() {
+        let mut file = NamedTempFile::new().unwrap();
+        let content = b"hello world";
+        file.write_all(content).unwrap();
+
+        let hash = calculate_sha256(file.path());
+        let expected_hash =
+            Some("b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9".to_string());
+
+        assert_eq!(hash, expected_hash);
+    }
+
+    #[test]
+    fn test_count_lines() {
+        let mut file = NamedTempFile::new().unwrap();
+        let content = b"hello\nworld\n";
+        file.write_all(content).unwrap();
+
+        let lines = count_lines(file.path());
+        assert_eq!(lines, Some(2));
+    }
+
+    #[test]
+    fn test_count_lines_no_newline_at_end() {
+        let mut file = NamedTempFile::new().unwrap();
+        let content = b"hello\nworld";
+        file.write_all(content).unwrap();
+
+        let lines = count_lines(file.path());
+        assert_eq!(lines, Some(2));
+    }
+
+    #[test]
+    fn test_count_lines_binary_file() {
+        let mut file = NamedTempFile::new().unwrap();
+        let content = b"\x00\x01\x02\x03";
+        file.write_all(content).unwrap();
+
+        let lines = count_lines(file.path());
+        assert_eq!(lines, None);
+    }
 }
