@@ -39,11 +39,11 @@ pub struct SnapshotCommand {
     pub follow_symlinks: bool,
 
     /// Buffer size in bytes for hashing files (default: 1MB)
-    #[arg(long, default_value_t = 1048576)]
+    #[arg(long, default_value_t = 1 * 1024 * 1024)]
     pub hash_buffer_size: usize,
 
     /// Buffer size in bytes for counting lines (default: 1MB)
-    #[arg(long, default_value_t = 1048576)]
+    #[arg(long, default_value_t = 1 * 1024 * 1024)]
     pub line_count_buffer_size: usize,
 }
 
