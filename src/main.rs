@@ -13,6 +13,7 @@ enum Commands {
     #[command(alias = "scan")]
     Snapshot {
         /// Path to the directory to scan
+        #[arg(default_value = ".")]
         path: String,
     },
 }
