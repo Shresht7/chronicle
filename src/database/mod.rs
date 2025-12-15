@@ -1,7 +1,11 @@
 use rusqlite::{Connection, Result, params};
-use std::{collections::HashMap, path::Path, time::UNIX_EPOCH};
+use std::{
+    collections::{HashMap, HashSet},
+    path::Path,
+    time::UNIX_EPOCH,
+};
 
-use crate::models::{FileMetadata, Snapshot};
+use crate::models::{Diff, FileMetadata, Snapshot};
 
 /// Opens (or Creates) the Chronicle database at the given path
 pub fn open(path: &Path) -> Result<Connection> {
@@ -104,4 +108,80 @@ pub fn snapshot_changed(conn: &mut Connection, root: &str, files: &[FileMetadata
     }
 
     Ok(false)
+}
+
+pub fn compute_diff(conn: &mut Connection, root: &str, files: &[FileMetadata]) -> Result<Diff> {
+    use rusqlite::OptionalExtension;
+
+    // Get last snapshot
+    let last_id: Option<i64> = conn
+        .query_row(
+            "SELECT id FROM snapshot WHERE root ?1 ORDER BY timestamp DESC LIMIT 1",
+            [root],
+            |row| row.get(0),
+        )
+        .optional()?;
+
+    let last_id = match last_id {
+        Some(id) => id,
+        None => {
+            // No previous snapshots -> everything is new
+            return Ok(Diff {
+                added: files
+                    .iter()
+                    .map(|f| f.path.to_string_lossy().to_string())
+                    .collect(),
+                removed: vec![],
+                modified: vec![],
+            });
+        }
+    };
+
+    // Load previous files: path -> content_hash
+    let mut stmt = conn.prepare("SELECT path, hash FROM files WHERE snapshot_id = ?1")?;
+    let previous_files: HashMap<String, Option<String>> = stmt
+        .query_map([last_id], |row| {
+            let path: String = row.get(0)?;
+            let content_hash: Option<String> = row.get(1)?;
+            Ok((path, content_hash))
+        })?
+        .collect::<Result<_>>()?;
+
+    let mut added = Vec::new();
+    let mut removed = Vec::new();
+    let mut modified = Vec::new();
+
+    let current_paths: HashSet<String> = files
+        .iter()
+        .map(|f| f.path.to_string_lossy().to_string())
+        .collect();
+    let previous_paths: HashSet<String> = previous_files.keys().cloned().collect();
+
+    // Added files
+    for f in current_paths.difference(&previous_paths) {
+        added.push(f.clone());
+    }
+
+    // Removed files
+    for f in previous_paths.difference(&current_paths) {
+        removed.push(f.clone());
+    }
+
+    // Modified files (present in both, different hash)
+    for f in current_paths.intersection(&previous_paths) {
+        let new_file = files
+            .iter()
+            .find(|x| x.path.to_string_lossy() == *f)
+            .unwrap();
+        let old_hash = previous_files.get(f).unwrap();
+        if old_hash != &new_file.content_hash {
+            modified.push(f.clone());
+        }
+    }
+
+    Ok(Diff {
+        added,
+        removed,
+        modified,
+    })
 }

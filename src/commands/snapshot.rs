@@ -72,10 +72,31 @@ impl Snapshot {
             return Ok(());
         }
 
+        // Compute Diff
+        let diff =
+            database::compute_diff(&mut conn, &snapshot.root.to_string_lossy(), &snapshot.files)?;
+
+        // Print Diff
+        if diff.added.is_empty() && diff.removed.is_empty() && diff.modified.is_empty() {
+            println!("No changes detected");
+            return Ok(());
+        }
+
+        // Print summary
+        println!("Snapshot detected changes:");
+        if !diff.added.is_empty() {
+            println!("  + {} added files", diff.added.len());
+        }
+        if !diff.removed.is_empty() {
+            println!("  - {} removed files", diff.removed.len());
+        }
+        if !diff.modified.is_empty() {
+            println!("  * {} modified files", diff.modified.len());
+        }
+
         // Insert Snapshot
         let snapshot_id = database::insert_snapshot(&mut conn, &snapshot)?;
-
-        println!("Snapshot ID: {snapshot_id}");
+        println!("Snapshot stored with id {}", snapshot_id);
 
         Ok(())
     }
