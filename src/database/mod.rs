@@ -1,8 +1,10 @@
 mod compute_diff;
 mod insert_snapshot;
+mod query;
 
 pub use compute_diff::*;
 pub use insert_snapshot::*;
+pub use query::*;
 use rusqlite::{Connection, Result};
 use std::path::Path;
 
