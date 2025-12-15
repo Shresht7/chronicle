@@ -1,6 +1,7 @@
 use clap::Parser;
 use ignore::WalkBuilder;
 
+/// The command to scan a directory and record a snapshot
 #[derive(Parser, Debug)]
 pub struct Snapshot {
     /// Path to the directory to scan
@@ -9,7 +10,8 @@ pub struct Snapshot {
 }
 
 impl Snapshot {
-    pub fn execute(&self) {
+    /// Execute the command to scan a directory and record a snapshot
+    pub fn execute(&self) -> Result<(), Box<dyn std::error::Error>> {
         // Create a walker to scan the directory
         let walker = WalkBuilder::new(&self.path).build();
 
@@ -31,5 +33,7 @@ impl Snapshot {
             // Print the path to the file
             println!("{}", entry.path().display())
         }
+
+        Ok(())
     }
 }
