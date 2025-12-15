@@ -14,12 +14,13 @@ pub struct Snapshot {
 impl Snapshot {
     /// Execute the command to scan a directory and record a snapshot
     pub fn execute(&self) -> Result<(), Box<dyn std::error::Error>> {
-        println!("Scanning directory: {}", self.path);
+        let root = std::fs::canonicalize(&self.path)?;
+        println!("Scanning directory: {}", root.display());
 
         let mut files = Vec::new();
 
         // Create a walker to scan the directory
-        let walker = WalkBuilder::new(&self.path).build();
+        let walker = WalkBuilder::new(&root).build();
 
         // Iterate over the entries in the directory
         for result in walker {
@@ -39,9 +40,15 @@ impl Snapshot {
             // Get the metadata of the file
             let metadata = entry.metadata()?;
 
-            // Print the metadata;
+            let full_path = entry.path();
+            let relative_path = full_path
+                .strip_prefix(&root)
+                .unwrap_or(full_path)
+                .to_path_buf();
+
+            // Print the metadata
             let metadata = models::FileMetadata {
-                path: entry.path().to_path_buf(),
+                path: relative_path,
                 bytes: metadata.len(),
                 modified_at: metadata.modified().ok(),
                 created_at: metadata.created().ok(),
@@ -54,7 +61,7 @@ impl Snapshot {
 
         // Create Snapshot
         let snapshot = models::Snapshot {
-            root: std::path::PathBuf::from(&self.path),
+            root: root.clone(),
             timestamp: std::time::SystemTime::now(),
             files,
         };
@@ -93,6 +100,11 @@ impl Snapshot {
         if !diff.modified.is_empty() {
             println!("  * {} modified files", diff.modified.len());
         }
+
+        debug_assert!(
+            snapshot.files.iter().all(|f| !f.path.is_absolute()),
+            "FileMetadata paths must be relative"
+        );
 
         // Insert Snapshot
         let snapshot_id = database::insert_snapshot(&mut conn, &snapshot)?;
