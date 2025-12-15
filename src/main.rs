@@ -1,4 +1,5 @@
 use clap::{Parser, Subcommand};
+use ignore::WalkBuilder;
 
 #[derive(Parser, Debug)]
 struct Cli {
@@ -20,7 +21,28 @@ fn main() {
     let cli = Cli::parse();
     match cli.command {
         Commands::Snapshot { path } => {
-            println!("Scanning directory: {}", path);
+            run_snapshot(&path);
         }
+    }
+}
+
+fn run_snapshot(path: &str) {
+    let walker = WalkBuilder::new(path).build();
+
+    for result in walker {
+        let entry = match result {
+            Ok(entry) => entry,
+            Err(err) => {
+                eprintln!("Walk Error: {err}");
+                continue;
+            }
+        };
+
+        // Skip directories for now
+        if !entry.file_type().map(|ft| ft.is_file()).unwrap_or(false) {
+            continue;
+        }
+
+        println!("{}", entry.path().display())
     }
 }
