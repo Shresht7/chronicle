@@ -1,6 +1,7 @@
 use clap::{Parser, Subcommand};
 
 mod commands;
+mod core;
 mod database;
 mod models;
 mod utils;
