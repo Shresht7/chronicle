@@ -77,7 +77,7 @@ pub fn compute_diff(conn: &mut Connection, root: &str, files: &[FileMetadata]) -
     // Get last snapshot
     let last_id: Option<i64> = conn
         .query_row(
-            "SELECT id FROM snapshot WHERE root ?1 ORDER BY timestamp DESC LIMIT 1",
+            "SELECT id FROM snapshots WHERE root ?1 ORDER BY timestamp DESC LIMIT 1",
             [root],
             |row| row.get(0),
         )
