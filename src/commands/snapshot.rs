@@ -37,12 +37,11 @@ impl Snapshot {
 
             // Print the metadata
             let metadata = FileMetadata {
-                name: entry.file_name().to_string_lossy().to_string(),
                 path: entry.path().to_path_buf(),
-                size: metadata.len(),
-                modified: metadata.modified().ok(),
-                created: metadata.created().ok(),
-                accessed: metadata.accessed().ok(),
+                bytes: metadata.len(),
+                modified_at: metadata.modified().ok(),
+                created_at: metadata.created().ok(),
+                accessed_at: metadata.accessed().ok(),
             };
             println!("{metadata:?}");
         }
