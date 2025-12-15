@@ -62,6 +62,17 @@ impl Snapshot {
         let db_path = utils::get_chronicle_db_path()?;
         let mut conn = database::open(&db_path)?;
 
+        // Check if snapshot has changed
+        if !database::snapshot_changed(
+            &mut conn,
+            &snapshot.root.to_string_lossy(),
+            &snapshot.files,
+        )? {
+            println!("No changes detected");
+            return Ok(());
+        }
+
+        // Insert Snapshot
         let snapshot_id = database::insert_snapshot(&mut conn, &snapshot)?;
 
         println!("Snapshot ID: {snapshot_id}");
