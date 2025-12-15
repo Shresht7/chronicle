@@ -1,6 +1,8 @@
 use clap::Parser;
 use ignore::WalkBuilder;
 
+use crate::models::FileMetadata;
+
 /// The command to scan a directory and record a snapshot
 #[derive(Parser, Debug)]
 pub struct Snapshot {
@@ -30,8 +32,19 @@ impl Snapshot {
                 continue;
             }
 
-            // Print the path to the file
-            println!("{}", entry.path().display())
+            // Get the metadata of the file
+            let metadata = entry.metadata()?;
+
+            // Print the metadata
+            let metadata = FileMetadata {
+                name: entry.file_name().to_string_lossy().to_string(),
+                path: entry.path().to_path_buf(),
+                size: metadata.len(),
+                modified: metadata.modified().ok(),
+                created: metadata.created().ok(),
+                accessed: metadata.accessed().ok(),
+            };
+            println!("{metadata:?}");
         }
 
         Ok(())
