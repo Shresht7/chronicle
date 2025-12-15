@@ -20,6 +20,9 @@ use std::path::PathBuf;
 /// ))?;
 /// ```
 pub fn get_chronicle_dir() -> std::io::Result<PathBuf> {
+    // The name of the application
+    let app_name = env!("CARGO_PKG_NAME");
+
     // Determine base data directory
     #[cfg(target_os = "windows")]
     let base_dir = dirs_next::data_local_dir().ok_or(std::io::Error::new(
@@ -32,7 +35,7 @@ pub fn get_chronicle_dir() -> std::io::Result<PathBuf> {
         .unwrap_or_else(|| dirs_next::home_dir().unwrap().join(".local/share"))?;
 
     // Chronicle Specific Folder
-    let chronicle_dir = base_dir.join(env!("CARGO_PKG_NAME"));
+    let chronicle_dir = base_dir.join(app_name);
 
     // Create folder if it doesn't exist
     std::fs::create_dir_all(&chronicle_dir)?;
