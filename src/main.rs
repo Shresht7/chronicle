@@ -1,6 +1,7 @@
 use clap::{Parser, Subcommand};
 
 mod commands;
+mod models;
 
 /// The command-line-interface for the application
 #[derive(Parser, Debug)]
