@@ -42,7 +42,7 @@ impl List {
                 snapshot.id.to_string(),
                 datetime.format("%Y-%m-%d %H:%M:%S").to_string(),
                 snapshot.file_count.to_string(),
-                format_human_readable_size(snapshot.total_size as u64),
+                utils::format_size_auto(snapshot.total_size as u64),
             ]);
         }
 
@@ -51,21 +51,5 @@ impl List {
         println!("{}", formatter.format(&table));
 
         Ok(())
-    }
-}
-
-fn format_human_readable_size(bytes: u64) -> String {
-    const KIB: u64 = 1024;
-    const MIB: u64 = 1024 * KIB;
-    const GIB: u64 = 1024 * MIB;
-
-    if bytes >= GIB {
-        format!("{:.2} GiB", bytes as f64 / GIB as f64)
-    } else if bytes >= MIB {
-        format!("{:.2} MiB", bytes as f64 / MIB as f64)
-    } else if bytes >= KIB {
-        format!("{:.2} KiB", bytes as f64 / KIB as f64)
-    } else {
-        format!("{} B", bytes)
     }
 }
