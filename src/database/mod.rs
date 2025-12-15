@@ -71,45 +71,6 @@ pub fn insert_snapshot(conn: &mut Connection, snapshot: &Snapshot) -> Result<i64
     Ok(snapshot_id)
 }
 
-/// Returns true if the new snapshot differs from the last one
-pub fn snapshot_changed(conn: &mut Connection, root: &str, files: &[FileMetadata]) -> Result<bool> {
-    // Get last snapshot_id
-    let last_id: Option<i64> = conn.query_row(
-        "SELECT id FROM snapshots WHERE root = ?1 ORDER BY timestamp DESC LIMIT 1",
-        [root],
-        |row| row.get(0),
-    )?;
-
-    let Some(last_id) = last_id else {
-        // No previous snapshot, must insert
-        return Ok(true);
-    };
-
-    // Load previous files
-    let mut stmt = conn.prepare("SELECT path, content_hash FROM files WHERE snapshot_id = ?1")?;
-    let previous_files: HashMap<String, Option<String>> = stmt
-        .query_map([last_id], |row| {
-            let path: String = row.get(0)?;
-            let content_hash: Option<String> = row.get(1)?;
-            Ok((path, content_hash))
-        })?
-        .collect::<Result<HashMap<_, _>>>()?;
-
-    // Compare
-    if previous_files.len() != files.len() {
-        return Ok(true);
-    }
-
-    for file in files {
-        match previous_files.get(&file.path.to_string_lossy().to_string()) {
-            Some(old_hash) if old_hash == &file.content_hash => continue,
-            _ => return Ok(true), // file added, removed or changed
-        }
-    }
-
-    Ok(false)
-}
-
 pub fn compute_diff(conn: &mut Connection, root: &str, files: &[FileMetadata]) -> Result<Diff> {
     use rusqlite::OptionalExtension;
 

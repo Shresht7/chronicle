@@ -69,19 +69,13 @@ impl Snapshot {
         let db_path = utils::get_chronicle_db_path()?;
         let mut conn = database::open(&db_path)?;
 
-        // Check if snapshot has changed
-        if !database::snapshot_changed(
-            &mut conn,
-            &snapshot.root.to_string_lossy(),
-            &snapshot.files,
-        )? {
-            println!("No changes detected");
-            return Ok(());
-        }
-
         // Compute Diff
         let diff =
             database::compute_diff(&mut conn, &snapshot.root.to_string_lossy(), &snapshot.files)?;
+        if diff.is_empty() {
+            println!("No changes detected");
+            return Ok(());
+        }
 
         // Print Diff
         if diff.added.is_empty() && diff.removed.is_empty() && diff.modified.is_empty() {
