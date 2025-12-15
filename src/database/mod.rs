@@ -21,6 +21,8 @@ fn initialize_schema(conn: &mut Connection) -> Result<()> {
 }
 
 pub fn insert_snapshot(conn: &mut Connection, snapshot: &Snapshot) -> Result<i64> {
+    let tx = conn.transaction()?;
+
     let timestamp = snapshot
         .timestamp
         .duration_since(UNIX_EPOCH)
@@ -28,15 +30,14 @@ pub fn insert_snapshot(conn: &mut Connection, snapshot: &Snapshot) -> Result<i64
         .as_secs() as i64;
 
     // Insert Snapshot Row
-    conn.execute(
+    tx.execute(
         "INSERT INTO snapshots (root, timestamp) VALUES (?1, ?2)",
         params![snapshot.root.to_string_lossy(), timestamp],
     )?;
 
-    let snapshot_id = conn.last_insert_rowid();
+    let snapshot_id = tx.last_insert_rowid();
 
     // Insert Files
-    let tx = conn.transaction()?;
     for file in &snapshot.files {
         let modified = file
             .modified_at
@@ -66,6 +67,7 @@ pub fn insert_snapshot(conn: &mut Connection, snapshot: &Snapshot) -> Result<i64
             ],
         )?;
     }
+
     tx.commit()?;
 
     Ok(snapshot_id)
