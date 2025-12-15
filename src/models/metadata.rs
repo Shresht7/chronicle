@@ -10,4 +10,6 @@ pub struct FileMetadata {
     pub created_at: Option<std::time::SystemTime>,
     /// The last access time of the file
     pub accessed_at: Option<std::time::SystemTime>,
+    /// The hash of the file content
+    pub content_hash: Option<String>,
 }
