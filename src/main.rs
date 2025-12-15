@@ -4,6 +4,7 @@ mod commands;
 mod core;
 mod database;
 mod models;
+mod output_formatter;
 mod utils;
 
 /// The command-line-interface for the application
