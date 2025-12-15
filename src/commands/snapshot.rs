@@ -1,7 +1,7 @@
 use clap::Parser;
 use ignore::WalkBuilder;
 
-use crate::{models, utils};
+use crate::{database, models, utils};
 
 /// The command to scan a directory and record a snapshot
 #[derive(Parser, Debug)]
@@ -59,8 +59,12 @@ impl Snapshot {
             files,
         };
 
-        // For now, just print the snapshot
-        println!("Snapshot: {:#?}", snapshot);
+        let db_path = utils::get_chronicle_db_path()?;
+        let mut conn = database::open(&db_path)?;
+
+        let snapshot_id = database::insert_snapshot(&mut conn, &snapshot)?;
+
+        println!("Snapshot ID: {snapshot_id}");
 
         Ok(())
     }

@@ -19,7 +19,7 @@ use std::path::PathBuf;
 ///     "LocalAppData Not Found!",
 /// ))?;
 /// ```
-fn get_chronicle_dir() -> std::io::Result<PathBuf> {
+pub fn get_chronicle_dir() -> std::io::Result<PathBuf> {
     // Determine base data directory
     #[cfg(target_os = "windows")]
     let base_dir = dirs_next::data_local_dir().ok_or(std::io::Error::new(
@@ -38,4 +38,9 @@ fn get_chronicle_dir() -> std::io::Result<PathBuf> {
     std::fs::create_dir_all(&chronicle_dir)?;
 
     Ok(chronicle_dir)
+}
+
+pub fn get_chronicle_db_path() -> std::io::Result<PathBuf> {
+    let chronicle_dir = get_chronicle_dir()?;
+    Ok(chronicle_dir.join("chronicle.db"))
 }
