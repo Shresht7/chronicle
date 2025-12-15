@@ -2,7 +2,7 @@ use clap::Parser;
 use std::path::PathBuf;
 use chrono::{Local, DateTime};
 
-use crate::{database, utils};
+use crate::{database, models, output_formatter, utils};
 
 /// The command to list all snapshots for a given directory
 #[derive(Parser, Debug)]
@@ -27,25 +27,33 @@ impl List {
             return Ok(());
         }
 
-        println!("Snapshots for: {}", root.display());
-        println!("{:<4} | {:<25} | {:<10} | {:<10}", "ID", "Timestamp", "Files", "Size");
-        println!("----------------------------------------------------------");
+        let headers = vec![
+            "ID".to_string(),
+            "Timestamp".to_string(),
+            "Files".to_string(),
+            "Size".to_string(),
+        ];
+
+        let mut rows = Vec::new();
         for snapshot in snapshots {
             let datetime: DateTime<Local> = snapshot.timestamp.into();
-            println!(
-                "{:<4} | {:<25} | {:<10} | {:<10}",
-                snapshot.id,
-                datetime.format("%Y-%m-%d %H:%M:%S"),
-                snapshot.file_count,
-                format_size(snapshot.total_size as u64)
-            );
+            rows.push(vec![
+                snapshot.id.to_string(),
+                datetime.format("%Y-%m-%d %H:%M:%S").to_string(),
+                snapshot.file_count.to_string(),
+                format_size(snapshot.total_size as u64),
+            ]);
         }
-        println!("----------------------------------------------------------");
+
+        let table = models::Table::new(headers, rows);
+        let formatter = output_formatter::TsvFormatter;
+        println!("{}", formatter.format(&table));
 
         Ok(())
     }
 }
 
+// Moved to separate formatting logic, but keep for now until confirmation.
 fn format_size(bytes: u64) -> String {
     const KIB: u64 = 1024;
     const MIB: u64 = 1024 * KIB;
