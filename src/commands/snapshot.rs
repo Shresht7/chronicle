@@ -1,7 +1,7 @@
 use clap::Parser;
 use ignore::WalkBuilder;
 
-use crate::models::FileMetadata;
+use crate::models::{self, FileMetadata};
 
 /// The command to scan a directory and record a snapshot
 #[derive(Parser, Debug)]
@@ -14,6 +14,10 @@ pub struct Snapshot {
 impl Snapshot {
     /// Execute the command to scan a directory and record a snapshot
     pub fn execute(&self) -> Result<(), Box<dyn std::error::Error>> {
+        println!("Scanning directory: {}", self.path);
+
+        let mut files = Vec::new();
+
         // Create a walker to scan the directory
         let walker = WalkBuilder::new(&self.path).build();
 
@@ -43,8 +47,19 @@ impl Snapshot {
                 created_at: metadata.created().ok(),
                 accessed_at: metadata.accessed().ok(),
             };
-            println!("{metadata:?}");
+
+            files.push(metadata);
         }
+
+        // Create Snapshot
+        let snapshot = models::Snapshot {
+            root: std::path::PathBuf::from(&self.path),
+            timestamp: std::time::SystemTime::now(),
+            files,
+        };
+
+        // For now, just print the snapshot
+        println!("Snapshot: {:#?}", snapshot);
 
         Ok(())
     }
