@@ -59,6 +59,9 @@ impl Snapshot {
             files.push(metadata);
         }
 
+        // Sort files by path to ensure deterministic order
+        files.sort_by(|a, b| a.path.cmp(&b.path));
+
         // Create Snapshot
         let snapshot = models::Snapshot {
             root: root.clone(),
