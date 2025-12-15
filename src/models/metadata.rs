@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FileMetadata {
     /// The path to the file
     pub path: std::path::PathBuf,
