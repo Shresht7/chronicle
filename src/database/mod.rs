@@ -99,7 +99,7 @@ pub fn compute_diff(conn: &mut Connection, root: &str, files: &[FileMetadata]) -
     };
 
     // Load previous files: path -> content_hash
-    let mut stmt = conn.prepare("SELECT path, hash FROM files WHERE snapshot_id = ?1")?;
+    let mut stmt = conn.prepare("SELECT path, content_hash FROM files WHERE snapshot_id = ?1")?;
     let previous_files: HashMap<String, Option<String>> = stmt
         .query_map([last_id], |row| {
             let path: String = row.get(0)?;
