@@ -8,3 +8,4 @@ blake3 = "1.8.2"
 clap = { version = "4.5.53", features = ["derive"] }
 dirs-next = "2.0.0"
 ignore = "0.4.25"
+rusqlite = { version = "0.37.0", features = ["bundled"] }
