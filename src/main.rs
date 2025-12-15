@@ -18,5 +18,9 @@ enum Commands {
 
 fn main() {
     let cli = Cli::parse();
-    println!("{cli:#?}");
+    match cli.command {
+        Commands::Snapshot { path } => {
+            println!("Scanning directory: {}", path);
+        }
+    }
 }
