@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use chrono::{Local, DateTime};
 
 use crate::{database, models, output_formatter, utils};
+use crate::output_formatter::OutputFormatter;
 
 /// The command to list all snapshots for a given directory
 #[derive(Parser, Debug)]
@@ -41,7 +42,7 @@ impl List {
                 snapshot.id.to_string(),
                 datetime.format("%Y-%m-%d %H:%M:%S").to_string(),
                 snapshot.file_count.to_string(),
-                format_size(snapshot.total_size as u64),
+                format_human_readable_size(snapshot.total_size as u64),
             ]);
         }
 
@@ -53,8 +54,7 @@ impl List {
     }
 }
 
-// Moved to separate formatting logic, but keep for now until confirmation.
-fn format_size(bytes: u64) -> String {
+fn format_human_readable_size(bytes: u64) -> String {
     const KIB: u64 = 1024;
     const MIB: u64 = 1024 * KIB;
     const GIB: u64 = 1024 * MIB;
