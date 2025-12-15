@@ -19,6 +19,9 @@ enum Commands {
     /// Scan a directory and record a snapshot
     #[command(alias = "scan")]
     Snapshot(commands::Snapshot),
+    /// List all snapshots for a given directory
+    #[command(alias = "log")]
+    List(commands::List),
 }
 
 /// The main entrypoint of the application
@@ -37,5 +40,6 @@ fn main() {
 fn run(cli: &Cli) -> Result<(), Box<dyn std::error::Error>> {
     match &cli.command {
         Commands::Snapshot(cmd) => cmd.execute(),
+        Commands::List(cmd) => cmd.execute(),
     }
 }
