@@ -9,6 +9,7 @@ struct Cli {
 #[derive(Subcommand, Debug)]
 enum Commands {
     /// Scan a directory and record a snapshot
+    #[command(alias = "scan")]
     Snapshot {
         /// Path to the directory to scan
         path: String,
