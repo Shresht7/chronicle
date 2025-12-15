@@ -28,18 +28,36 @@ impl List {
         }
 
         println!("Snapshots for: {}", root.display());
-        println!("------------------------------------");
+        println!("{:<4} | {:<25} | {:<10} | {:<10}", "ID", "Timestamp", "Files", "Size");
+        println!("----------------------------------------------------------");
         for snapshot in snapshots {
             let datetime: DateTime<Local> = snapshot.timestamp.into();
             println!(
-                "ID: {:<4} | Timestamp: {:<25} | Root: {}",
+                "{:<4} | {:<25} | {:<10} | {:<10}",
                 snapshot.id,
                 datetime.format("%Y-%m-%d %H:%M:%S"),
-                snapshot.root.display()
+                snapshot.file_count,
+                format_size(snapshot.total_size as u64)
             );
         }
-        println!("------------------------------------");
+        println!("----------------------------------------------------------");
 
         Ok(())
+    }
+}
+
+fn format_size(bytes: u64) -> String {
+    const KIB: u64 = 1024;
+    const MIB: u64 = 1024 * KIB;
+    const GIB: u64 = 1024 * MIB;
+
+    if bytes >= GIB {
+        format!("{:.2} GiB", bytes as f64 / GIB as f64)
+    } else if bytes >= MIB {
+        format!("{:.2} MiB", bytes as f64 / MIB as f64)
+    } else if bytes >= KIB {
+        format!("{:.2} KiB", bytes as f64 / KIB as f64)
+    } else {
+        format!("{} B", bytes)
     }
 }

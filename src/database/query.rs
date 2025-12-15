@@ -9,7 +9,22 @@ pub fn list_snapshots_for_root(
     root: &str,
 ) -> Result<Vec<SnapshotMetadata>> {
     let mut stmt = conn.prepare(
-        "SELECT id, root, timestamp FROM snapshots WHERE root = ?1 ORDER BY timestamp DESC",
+        "SELECT
+            s.id,
+            s.root,
+            s.timestamp,
+            COUNT(f.id),
+            SUM(f.bytes)
+        FROM
+            snapshots s
+        JOIN
+            files f ON s.id = f.snapshot_id
+        WHERE
+            s.root = ?1
+        GROUP BY
+            s.id
+        ORDER BY
+            s.timestamp DESC",
     )?;
     let snapshot_iter = stmt.query_map([root], |row| SnapshotMetadata::try_from(row))?;
 
@@ -31,6 +46,8 @@ impl TryFrom<&Row<'_>> for SnapshotMetadata {
             id: row.get(0)?,
             root: PathBuf::from(row.get::<_, String>(1)?),
             timestamp,
+            file_count: row.get(3)?,
+            total_size: row.get(4)?,
         })
     }
 }

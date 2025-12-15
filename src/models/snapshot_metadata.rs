@@ -7,4 +7,6 @@ pub struct SnapshotMetadata {
     pub id: i64,
     pub root: PathBuf,
     pub timestamp: SystemTime,
+    pub file_count: i64,
+    pub total_size: i64,
 }
