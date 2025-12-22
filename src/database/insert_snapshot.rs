@@ -1,5 +1,5 @@
 use crate::models::Snapshot;
-use rusqlite::{params, Connection, Result};
+use rusqlite::{Connection, Result, params};
 use std::time::UNIX_EPOCH;
 
 pub fn insert_snapshot(conn: &mut Connection, snapshot: &Snapshot) -> Result<i64> {
@@ -41,7 +41,7 @@ pub fn insert_snapshot(conn: &mut Connection, snapshot: &Snapshot) -> Result<i64
             params![
                 snapshot_id,
                 file.path.to_string_lossy(),
-                file.bytes,
+                file.bytes as i64, // Cast u64 to i64 for SQLite
                 modified,
                 created,
                 accessed,
@@ -55,13 +55,12 @@ pub fn insert_snapshot(conn: &mut Connection, snapshot: &Snapshot) -> Result<i64
     Ok(snapshot_id)
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::database::initialize_schema;
     use crate::models::FileMetadata;
-    use rusqlite::{params, Connection};
+    use rusqlite::{Connection, params};
     use std::path::PathBuf;
     use std::time::SystemTime;
 
@@ -122,7 +121,9 @@ mod tests {
         let mut stmt = conn
             .prepare("SELECT COUNT(*) FROM files WHERE snapshot_id = ?1")
             .unwrap();
-        let count: i64 = stmt.query_row(params![snapshot_id], |row| row.get(0)).unwrap();
+        let count: i64 = stmt
+            .query_row(params![snapshot_id], |row| row.get(0))
+            .unwrap();
         assert_eq!(count, 2);
     }
 }
