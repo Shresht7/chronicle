@@ -23,6 +23,9 @@ pub enum Commands {
     /// Show the difference between the current directory state and the last snapshot
     #[command(alias = "st")]
     Status(commands::Status),
+
+    /// Show the difference between snapshots or the current state
+    Diff(commands::Diff),
 }
 
 pub fn parse() -> Args {
