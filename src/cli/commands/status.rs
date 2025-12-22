@@ -6,17 +6,17 @@ use crate::utils::file_lister; // Import the new file_lister module
 
 /// The command to show the difference between the current directory state and the last snapshot
 #[derive(Parser, Debug)]
-pub struct Diff {
+pub struct Status {
     /// Path to the directory to diff
     #[arg(default_value = ".")]
     path: PathBuf,
 }
 
-impl Diff {
-    /// Execute the diff command
+impl Status {
+    /// Execute the status command
     pub fn execute(&self) -> Result<(), Box<dyn std::error::Error>> {
         let root = std::fs::canonicalize(&self.path)?;
-        println!("Computing diff for directory: {}", root.display());
+        println!("Computing status for directory: {}", root.display());
 
         // Get current files metadata
         let current_files = file_lister::list_files_with_metadata(&root)?;
@@ -29,7 +29,7 @@ impl Diff {
         let diff = database::compute_diff(&mut conn, &root.to_string_lossy(), &current_files)?;
 
         if diff.is_empty() {
-            println!("No changes detected between current state and last snapshot.");
+            println!("No changes detected since last snapshot.");
             return Ok(())
         }
 

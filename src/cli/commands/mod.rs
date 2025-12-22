@@ -4,5 +4,5 @@ pub use snapshot::*;
 mod list;
 pub use list::List;
 
-mod diff;
-pub use diff::Diff;
+mod status;
+pub use status::Status;
