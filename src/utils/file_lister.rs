@@ -1,5 +1,5 @@
 use ignore::WalkBuilder;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use crate::{models, utils};
 

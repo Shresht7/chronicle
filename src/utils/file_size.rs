@@ -22,8 +22,14 @@ pub fn format_size_with_unit(bytes: u64, unit: &str) -> Result<String, String> {
         "b" => Ok(format!("{} B", bytes)),
         "kib" => Ok(format!("{:.2} KiB", bytes as f64 / 1024.0)),
         "mib" => Ok(format!("{:.2} MiB", bytes as f64 / (1024.0 * 1024.0))),
-        "gib" => Ok(format!("{:.2} GiB", bytes as f64 / (1024.0 * 1024.0 * 1024.0))),
-        "tib" => Ok(format!("{:.2} TiB", bytes as f64 / (1024.0 * 1024.0 * 1024.0 * 1024.0))),
+        "gib" => Ok(format!(
+            "{:.2} GiB",
+            bytes as f64 / (1024.0 * 1024.0 * 1024.0)
+        )),
+        "tib" => Ok(format!(
+            "{:.2} TiB",
+            bytes as f64 / (1024.0 * 1024.0 * 1024.0 * 1024.0)
+        )),
         _ => Err(format!("Invalid unit: {}", unit)),
     }
 }
