@@ -78,19 +78,17 @@ Diffs are the authoritative mechanism for detecting change.
 
 ## Usage
 
+All commands operate on a specified directory, which defaults to the current directory if not provided.
+
 ### Take a snapshot
+
+Scans a directory and records a new snapshot if any changes are detected.
 
 ```bash
 chronicle snapshot /path/to/directory
 ```
 
-if no changes are detected since the last snapshot
-
-```
-No changes detected
-```
-
-if changes are detected:
+If changes are detected, you'll see a summary:
 
 ```
 Snapshot detected changes:
@@ -100,7 +98,64 @@ Snapshot detected changes:
 Snapshot stored with id 23
 ```
 
-`scan` can be used as an alias for `snapshot`
+`scan` can be used as an alias for `snapshot`.
+
+### List snapshots
+
+Lists all recorded snapshots for a directory.
+
+```bash
+chronicle list /path/to/directory
+```
+
+Output:
+
+```
+ID    Timestamp              Files    Size
+1     2025-12-22 10:00:00    150      1.2 GB
+2     2025-12-23 11:30:00    152      1.3 GB
+```
+
+`log` can be used as an alias for `list`. The output format can be changed to JSON with `--format json`.
+
+### Show directory status
+
+Compares the current state of the directory against the latest snapshot.
+
+```bash
+chronicle status /path/to/directory
+```
+
+Output:
+
+```
+Changes detected:
+
+Added files:
+  + new_file.txt
+
+Removed files:
+  - old_file.log
+
+Modified files:
+  * changed_document.md
+```
+
+`st` can be used as an alias for `status`.
+
+### Diff snapshots
+
+Shows the difference between two snapshots.
+
+```bash
+chronicle diff <rev1> <rev2> --path /path/to/directory
+```
+
+- `chronicle diff <rev1> <rev2>`: Compares snapshot `<rev1>` and `<rev2>`.
+- `chronicle diff <rev>`: Compares the current files to snapshot `<rev>`.
+- `chronicle diff`: Compares the last two snapshots (`HEAD~1` vs `HEAD`).
+
+Revisions can be a snapshot ID, `HEAD` (the latest snapshot), or `HEAD~1` (the snapshot before the latest).
 
 ## Data Storage
 
