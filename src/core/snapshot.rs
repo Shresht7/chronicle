@@ -1,8 +1,7 @@
-use std::path::Path;
-use std::process::Command;
+use std::path::{Path, PathBuf};
 
-use crate::{database, models, utils};
 use crate::utils::file_lister;
+use crate::{database, models, utils};
 
 pub fn take_snapshot(path: &Path) -> Result<(), Box<dyn std::error::Error>> {
     let root = std::fs::canonicalize(path)?;
@@ -17,18 +16,15 @@ pub fn take_snapshot(path: &Path) -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn is_git_repository(path: &Path) -> bool {
-    Command::new("git")
-        .arg("-C")
-        .arg(path.as_os_str())
-        .arg("rev-parse")
-        .arg("--is-inside-work-tree")
-        .output()
-        .map(|output| output.status.success() && String::from_utf8_lossy(&output.stdout).trim() == "true")
-        .unwrap_or(false)
+    gix::discover(path).is_ok()
 }
 
-fn take_snapshot_from_git(path: &Path) -> Result<(), Box<dyn std::error::Error>> {
-    println!("(Not yet implemented)");
+fn take_snapshot_from_git(root: &Path) -> Result<(), Box<dyn std::error::Error>> {
+    let repo = gix::open(root)?;
+    let head = repo.head_commit()?;
+
+    println!("(Not yet implemented: Found head commit {})", head.id);
+
     Ok(())
 }
 
