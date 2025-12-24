@@ -1,12 +1,39 @@
 use std::path::Path;
+use std::process::Command;
 
 use crate::{database, models, utils};
 use crate::utils::file_lister;
 
 pub fn take_snapshot(path: &Path) -> Result<(), Box<dyn std::error::Error>> {
     let root = std::fs::canonicalize(path)?;
-    println!("Scanning directory: {}", root.display());
 
+    if is_git_repository(&root) {
+        println!("Git repository detected, creating snapshot from HEAD");
+        take_snapshot_from_git(&root)
+    } else {
+        println!("Scanning directory: {}", root.display());
+        take_snapshot_from_fs(&root)
+    }
+}
+
+fn is_git_repository(path: &Path) -> bool {
+    Command::new("git")
+        .arg("-C")
+        .arg(path.as_os_str())
+        .arg("rev-parse")
+        .arg("--is-inside-work-tree")
+        .output()
+        .map(|output| output.status.success() && String::from_utf8_lossy(&output.stdout).trim() == "true")
+        .unwrap_or(false)
+}
+
+fn take_snapshot_from_git(path: &Path) -> Result<(), Box<dyn std::error::Error>> {
+    println!("(Not yet implemented)");
+    Ok(())
+}
+
+fn take_snapshot_from_fs(path: &Path) -> Result<(), Box<dyn std::error::Error>> {
+    let root = std::fs::canonicalize(path)?;
     let files = file_lister::list_files_with_metadata(&root)?;
 
     // Create Snapshot
