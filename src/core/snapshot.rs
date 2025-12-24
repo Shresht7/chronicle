@@ -32,17 +32,20 @@ fn take_snapshot_from_git(path: &Path) -> Result<(), Box<dyn std::error::Error>>
     Ok(())
 }
 
-fn take_snapshot_from_fs(path: &Path) -> Result<(), Box<dyn std::error::Error>> {
-    let root = std::fs::canonicalize(path)?;
-    let files = file_lister::list_files_with_metadata(&root)?;
+fn take_snapshot_from_fs(root: &Path) -> Result<(), Box<dyn std::error::Error>> {
+    let files = file_lister::list_files_with_metadata(root)?;
 
     // Create Snapshot
     let snapshot = models::Snapshot {
-        root: root.clone(),
+        root: root.to_path_buf(),
         timestamp: std::time::SystemTime::now(),
         files,
     };
 
+    store_snapshot(snapshot)
+}
+
+fn store_snapshot(snapshot: models::Snapshot) -> Result<(), Box<dyn std::error::Error>> {
     let db_path = utils::get_chronicle_db_path()?;
     let mut conn = database::open(&db_path)?;
 
