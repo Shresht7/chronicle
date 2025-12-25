@@ -1,3 +1,6 @@
+mod sync;
+pub use sync::*;
+
 mod snapshot;
 pub use snapshot::*;
 
