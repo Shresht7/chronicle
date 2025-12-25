@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 
 use gix::bstr::ByteSlice;
@@ -6,7 +6,7 @@ use gix::bstr::ByteSlice;
 use crate::utils::hashing;
 use crate::{database, models, utils}; // Added utils back for get_chronicle_db_path
 
-pub fn sync_history(path: &Path) -> Result<(), Box<dyn std::error::Error>> {
+pub fn sync_history(path: &Path, db_path_override: Option<&PathBuf>) -> Result<(), Box<dyn std::error::Error>> {
     let repo = gix::open(path)?;
     let head = repo.head_commit()?;
 
@@ -15,7 +15,7 @@ pub fn sync_history(path: &Path) -> Result<(), Box<dyn std::error::Error>> {
         path.display()
     );
 
-    let db_path = utils::get_chronicle_db_path()?;
+    let db_path = utils::get_chronicle_db_path(db_path_override)?;
     let mut conn = database::open(&db_path)?;
 
     // Iterate through all commits
@@ -71,8 +71,7 @@ pub fn sync_history(path: &Path) -> Result<(), Box<dyn std::error::Error>> {
             files,
         };
 
-        // database::store_snapshot expects a mutable connection
-        database::store_snapshot(snapshot)?;
+        database::store_snapshot(snapshot, db_path_override)?;
 
         println!("Processed commit: {}", commit_id);
     }
