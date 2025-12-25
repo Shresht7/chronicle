@@ -82,7 +82,7 @@ All commands operate on a specified directory, which defaults to the current dir
 
 ### Take a snapshot
 
-Scans a directory and records a new snapshot if any changes are detected.
+Scans a directory and records a new snapshot if any changes are detected. If the directory is a Git repository, it will create a snapshot based on the current `HEAD` commit.
 
 ```bash
 chronicle snapshot /path/to/directory
@@ -99,6 +99,16 @@ Snapshot stored with id 23
 ```
 
 `scan` can be used as an alias for `snapshot`.
+
+### Synchronize Git History
+
+Imports the entire commit history of a Git repository as `chronicle` snapshots.
+
+```bash
+chronicle sync /path/to/git/repo
+```
+
+This command is idempotent; already imported commits will be skipped.
 
 ### List snapshots
 
@@ -118,7 +128,7 @@ ID    Timestamp              Files    Size
 
 `log` can be used as an alias for `list`. The output format can be changed to JSON with `--format json`.
 
-### Show directory status
+Compares the current state of the directory against the latest snapshot. The output format can be changed to JSON with `--format json`.
 
 Compares the current state of the directory against the latest snapshot.
 
@@ -145,7 +155,7 @@ Modified files:
 
 ### Diff snapshots
 
-Shows the difference between two snapshots.
+Shows the difference between two snapshots. The output format can be changed to JSON with `--format json`.
 
 ```bash
 chronicle diff <rev1> <rev2> --path /path/to/directory
@@ -171,10 +181,9 @@ The database schema is internal and may evolve
 ## Planned / Future Work
 
 `chronicle` is intentionally built in layers. Planned additions include:
-- JSON export for snapshotting and diffs
 - Querying snapshot history
 - Visualization pipelines (SVG, graphs, timelines)
-- Git repository awareness (using Git metadata instead of file-system scan)
+- Git integration (introducing `sync` command for history import and Git-aware `snapshot`)
 - Additional diff and aggregations views
 These will build on the existing snapshot data model
 
