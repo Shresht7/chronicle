@@ -1,4 +1,5 @@
 use clap::{Parser, Subcommand};
+use std::path::PathBuf;
 
 pub mod commands;
 
@@ -7,6 +8,10 @@ pub mod commands;
 pub struct Args {
     #[command(subcommand)]
     pub command: Commands,
+
+    /// Path to the chronicle database file
+    #[arg(long, global = true)]
+    pub db: Option<PathBuf>,
 }
 
 /// The subcommands of the command-line-interface
