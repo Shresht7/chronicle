@@ -43,7 +43,13 @@ pub fn get_chronicle_dir() -> std::io::Result<PathBuf> {
     Ok(chronicle_dir)
 }
 
-pub fn get_chronicle_db_path() -> std::io::Result<PathBuf> {
+pub fn get_chronicle_db_path(db_path_override: Option<&PathBuf>) -> std::io::Result<PathBuf> {
+    if let Some(path) = db_path_override {
+        if let Some(parent) = path.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
+        return Ok(path.clone());
+    }
     let chronicle_dir = get_chronicle_dir()?;
     Ok(chronicle_dir.join("chronicle.db"))
 }
