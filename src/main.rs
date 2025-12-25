@@ -24,5 +24,6 @@ fn run(cli: &cli::Args) -> Result<(), Box<dyn std::error::Error>> {
         cli::Commands::List(cmd) => cmd.execute(),
         cli::Commands::Status(cmd) => cmd.execute(),
         cli::Commands::Diff(cmd) => cmd.execute(),
+        cli::Commands::Sync(cmd) => cmd.execute(),
     }
 }

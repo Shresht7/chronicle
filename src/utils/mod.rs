@@ -1,4 +1,4 @@
-mod hashing;
+pub mod hashing;
 
 mod data_dir;
 pub use data_dir::*;

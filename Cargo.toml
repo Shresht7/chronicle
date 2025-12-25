@@ -8,6 +8,7 @@ blake3 = "1.8.2"
 chrono = { version = "0.4.42", features = ["serde"] }
 clap = { version = "4.5.53", features = ["derive"] }
 dirs-next = "2.0.0"
+gix = "0.76.0"
 ignore = "0.4.25"
 rusqlite = { version = "0.38.0", features = ["bundled"] }
 serde = { version = "1.0.228", features = ["derive"] }

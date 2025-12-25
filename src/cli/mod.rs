@@ -26,6 +26,9 @@ pub enum Commands {
 
     /// Show the difference between snapshots or the current state
     Diff(commands::Diff),
+
+    /// Synchronize Git history into chronicle
+    Sync(commands::Sync),
 }
 
 pub fn parse() -> Args {

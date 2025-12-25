@@ -22,3 +22,10 @@ pub fn hash_file(path: &PathBuf) -> Result<String, std::io::Error> {
 
     Ok(hasher.finalize().to_hex().to_string())
 }
+
+/// Compute a BLAKE3 hash of a byte slice, returned as a hex string
+pub fn compute_blake3_hash(content: &[u8]) -> String {
+    let mut hasher = Hasher::new();
+    hasher.update(content);
+    hasher.finalize().to_hex().to_string()
+}

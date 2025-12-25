@@ -1,4 +1,13 @@
-use rusqlite::{Connection, OptionalExtension, Result, Row};
+use rusqlite::{Connection, OptionalExtension, Result, Row, params};
+
+pub fn snapshot_exists(conn: &Connection, root: &str, git_commit_hash: &str) -> Result<bool> {
+    let count: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM snapshots WHERE root = ?1 AND git_commit_hash = ?2",
+        params![root, git_commit_hash],
+        |row| row.get(0),
+    )?;
+    Ok(count > 0)
+}
 
 pub fn get_penultimate_snapshot_id(conn: &Connection, root: &str) -> Result<Option<i64>> {
     conn.query_row(
