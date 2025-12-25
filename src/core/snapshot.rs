@@ -68,10 +68,11 @@ fn take_snapshot_from_git(root: &Path) -> Result<(), Box<dyn std::error::Error>>
     let snapshot = models::Snapshot {
         root: root.to_path_buf(),
         timestamp,
+        git_commit_hash: Some(head.id().to_string()),
         files,
     };
 
-    store_snapshot(snapshot)
+    database::store_snapshot(snapshot)
 }
 
 fn take_snapshot_from_fs(root: &Path) -> Result<(), Box<dyn std::error::Error>> {
@@ -81,50 +82,11 @@ fn take_snapshot_from_fs(root: &Path) -> Result<(), Box<dyn std::error::Error>> 
     let snapshot = models::Snapshot {
         root: root.to_path_buf(),
         timestamp: std::time::SystemTime::now(),
+        git_commit_hash: None,
         files,
     };
 
-    store_snapshot(snapshot)
+    database::store_snapshot(snapshot)
 }
 
-fn store_snapshot(snapshot: models::Snapshot) -> Result<(), Box<dyn std::error::Error>> {
-    let db_path = utils::get_chronicle_db_path()?;
-    let mut conn = database::open(&db_path)?;
 
-    // Compute Diff
-    let diff =
-        database::compute_diff(&mut conn, &snapshot.root.to_string_lossy(), &snapshot.files)?;
-    if diff.is_empty() {
-        println!("No changes detected");
-        return Ok(());
-    }
-
-    // Print Diff
-    if diff.added.is_empty() && diff.removed.is_empty() && diff.modified.is_empty() {
-        println!("No changes detected");
-        return Ok(());
-    }
-
-    // Print summary
-    println!("Snapshot detected changes:");
-    if !diff.added.is_empty() {
-        println!("  + {} added files", diff.added.len());
-    }
-    if !diff.removed.is_empty() {
-        println!("  - {} removed files", diff.removed.len());
-    }
-    if !diff.modified.is_empty() {
-        println!("  * {} modified files", diff.modified.len());
-    }
-
-    debug_assert!(
-        snapshot.files.iter().all(|f| !f.path.is_absolute()),
-        "FileMetadata paths must be relative"
-    );
-
-    // Insert Snapshot
-    let snapshot_id = database::insert_snapshot(&mut conn, &snapshot)?;
-    println!("Snapshot stored with id {}", snapshot_id);
-
-    Ok(())
-}

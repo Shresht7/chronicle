@@ -4,7 +4,7 @@ use std::time::SystemTime;
 use gix::bstr::ByteSlice;
 
 use crate::utils::hashing;
-use crate::{database, models, utils};
+use crate::{database, models, utils}; // Added utils back for get_chronicle_db_path
 
 pub fn sync_history(path: &Path) -> Result<(), Box<dyn std::error::Error>> {
     let repo = gix::open(path)?;
@@ -15,11 +15,21 @@ pub fn sync_history(path: &Path) -> Result<(), Box<dyn std::error::Error>> {
         path.display()
     );
 
+    let db_path = utils::get_chronicle_db_path()?;
+    let mut conn = database::open(&db_path)?;
+
     // Iterate through all commits
     let mut rev_walk = head.ancestors().all()?;
     while let Some(commit_id) = rev_walk.next() {
-        let commit = repo.find_object(commit_id?.id())?.try_into_commit()?;
+        let commit_id = commit_id?.id(); // Get the actual commit ID
+        let commit = repo.find_object(commit_id)?.try_into_commit()?;
         let tree = commit.tree()?;
+
+        // Idempotency check
+        if database::snapshot_exists(&mut conn, &path.to_string_lossy(), &commit_id.to_string())? {
+            println!("Skipping already synchronized commit: {}", commit_id);
+            continue;
+        }
 
         let committer = commit.committer()?;
         let commit_time_str = committer.time;
@@ -57,16 +67,18 @@ pub fn sync_history(path: &Path) -> Result<(), Box<dyn std::error::Error>> {
         let snapshot = models::Snapshot {
             root: path.to_path_buf(),
             timestamp,
+            git_commit_hash: Some(commit.id().to_string()),
             files,
         };
 
-        // TODO: Idempotency check before storing snapshot
-        // TODO: Store Git commit hash in snapshot
-        // store_snapshot(snapshot)?;
+        // database::store_snapshot expects a mutable connection
+        database::store_snapshot(snapshot)?;
 
-        println!("Processed commit: {}", commit.id());
+        println!("Processed commit: {}", commit_id);
     }
 
     println!("Git history synchronization completed.");
     Ok(())
 }
+
+
