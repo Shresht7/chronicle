@@ -14,7 +14,11 @@ pub fn insert_snapshot(conn: &mut Connection, snapshot: &Snapshot) -> Result<i64
     // Insert Snapshot Row
     tx.execute(
         "INSERT INTO snapshots (root, timestamp, git_commit_hash) VALUES (?1, ?2, ?3)",
-        params![snapshot.root.to_string_lossy(), timestamp, snapshot.git_commit_hash],
+        params![
+            snapshot.root.to_string_lossy(),
+            timestamp,
+            snapshot.git_commit_hash
+        ],
     )?;
 
     let snapshot_id = tx.last_insert_rowid();
@@ -94,6 +98,7 @@ mod tests {
                     content_hash: Some("hash2".to_string()),
                 },
             ],
+            git_commit_hash: None,
         };
 
         let snapshot_id = insert_snapshot(&mut conn, &snapshot).unwrap();

@@ -78,7 +78,6 @@ pub fn compute_diff(conn: &mut Connection, root: &str, files: &[FileMetadata]) -
     })
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -128,6 +127,7 @@ mod tests {
             root: PathBuf::from("/tmp"),
             timestamp: SystemTime::now(),
             files: files.clone(),
+            git_commit_hash: None,
         };
         insert_snapshot(&mut conn, &snapshot).unwrap();
 
@@ -144,6 +144,7 @@ mod tests {
             root: PathBuf::from("/tmp"),
             timestamp: SystemTime::now(),
             files: initial_files,
+            git_commit_hash: None,
         };
         insert_snapshot(&mut conn, &snapshot).unwrap();
 
@@ -178,6 +179,7 @@ mod tests {
             root: PathBuf::from("/tmp"),
             timestamp: SystemTime::now(),
             files: initial_files,
+            git_commit_hash: None,
         };
         insert_snapshot(&mut conn, &snapshot).unwrap();
 
@@ -205,6 +207,7 @@ mod tests {
             root: PathBuf::from("/tmp"),
             timestamp: SystemTime::now(),
             files: initial_files,
+            git_commit_hash: None,
         };
         insert_snapshot(&mut conn, &snapshot).unwrap();
 
@@ -257,6 +260,7 @@ mod tests {
             root: PathBuf::from("/tmp"),
             timestamp: SystemTime::now(),
             files: initial_files,
+            git_commit_hash: None,
         };
         insert_snapshot(&mut conn, &snapshot).unwrap();
 

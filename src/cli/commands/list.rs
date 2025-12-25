@@ -1,10 +1,10 @@
+use chrono::{DateTime, Local};
 use clap::{Parser, ValueEnum};
-use std::path::PathBuf;
-use chrono::{Local, DateTime};
 use serde_json;
+use std::path::PathBuf;
 
-use crate::{database, models, output_formatter, utils, cli};
 use crate::output_formatter::OutputFormatter;
+use crate::{cli, database, models, output_formatter, utils};
 
 /// Defines the possible output formats for the list command.
 #[derive(ValueEnum, Clone, Debug)]
@@ -36,7 +36,7 @@ pub struct List {
 
 impl List {
     /// Execute the command to list all snapshots for a given directory
-    pub fn execute(&self, cli: &cli::Args) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn execute(&self, cli: &cli::args::Args) -> Result<(), Box<dyn std::error::Error>> {
         let root = std::fs::canonicalize(&self.path)?;
 
         let db_path = utils::get_chronicle_db_path(cli.db.as_ref())?;

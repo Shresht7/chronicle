@@ -1,6 +1,6 @@
 use clap::{Parser, ValueEnum};
-use std::path::PathBuf;
 use serde_json;
+use std::path::PathBuf;
 
 /// Defines the possible output formats for the diff command.
 #[derive(ValueEnum, Clone, Debug)]
@@ -36,12 +36,12 @@ pub struct Diff {
     format: OutputFormat,
 }
 
-use crate::{core, database, models, utils, cli};
+use crate::{cli, core, database, models, utils};
 use std::path::Path;
 
 impl Diff {
     /// Execute the diff command
-    pub fn execute(&self, cli: &cli::Args) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn execute(&self, cli: &cli::args::Args) -> Result<(), Box<dyn std::error::Error>> {
         let root = std::fs::canonicalize(&self.path)?;
         let db_path = utils::get_chronicle_db_path(cli.db.as_ref())?;
         let conn = database::open(&db_path)?;
@@ -50,8 +50,7 @@ impl Diff {
         let (files1, name1, files2, name2) = match (&self.rev1, &self.rev2) {
             // Case: `chronicle diff` (no args) -> compare last two snapshots
             (None, None) => {
-                let (f1, n1) =
-                    self.resolve_revision_to_fileset(&conn, &root, Some("HEAD~1"))?;
+                let (f1, n1) = self.resolve_revision_to_fileset(&conn, &root, Some("HEAD~1"))?;
                 let (f2, n2) = self.resolve_revision_to_fileset(&conn, &root, Some("HEAD"))?;
                 (f1, n1, f2, n2)
             }

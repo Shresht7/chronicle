@@ -8,7 +8,7 @@ mod utils;
 /// The main entrypoint of the application
 fn main() {
     // Parse the command line arguments
-    let args = cli::parse();
+    let args = cli::args::parse();
 
     // Run the command-line-interface and handle errors
     if let Err(e) = run(&args) {
@@ -18,12 +18,12 @@ fn main() {
 }
 
 /// Run the command-line-interface
-fn run(cli: &cli::Args) -> Result<(), Box<dyn std::error::Error>> {
+fn run(cli: &cli::args::Args) -> Result<(), Box<dyn std::error::Error>> {
     match &cli.command {
-        cli::Commands::Snapshot(cmd) => cmd.execute(cli),
-        cli::Commands::List(cmd) => cmd.execute(cli),
-        cli::Commands::Status(cmd) => cmd.execute(cli),
-        cli::Commands::Diff(cmd) => cmd.execute(cli),
-        cli::Commands::Sync(cmd) => cmd.execute(cli),
+        cli::commands::Commands::Snapshot(cmd) => cmd.execute(cli),
+        cli::commands::Commands::List(cmd) => cmd.execute(cli),
+        cli::commands::Commands::Status(cmd) => cmd.execute(cli),
+        cli::commands::Commands::Diff(cmd) => cmd.execute(cli),
+        cli::commands::Commands::Sync(cmd) => cmd.execute(cli),
     }
 }
