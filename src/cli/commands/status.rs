@@ -2,7 +2,7 @@ use clap::{Parser, ValueEnum};
 use std::path::PathBuf;
 use serde_json;
 
-use crate::{database, utils};
+use crate::{database, utils, cli};
 use crate::utils::file_lister;
 
 /// Defines the possible output formats for the status command.
@@ -35,10 +35,10 @@ pub struct Status {
 
 impl Status {
     /// Execute the status command
-    pub fn execute(&self) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn execute(&self, cli: &cli::Args) -> Result<(), Box<dyn std::error::Error>> {
         let root = std::fs::canonicalize(&self.path)?;
         
-        let db_path = utils::get_chronicle_db_path()?;
+        let db_path = utils::get_chronicle_db_path(cli.db.as_ref())?;
         let mut conn = database::open(&db_path)?;
 
         // Get current files metadata

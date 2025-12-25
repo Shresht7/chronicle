@@ -36,14 +36,14 @@ pub struct Diff {
     format: OutputFormat,
 }
 
-use crate::{core, database, models, utils};
+use crate::{core, database, models, utils, cli};
 use std::path::Path;
 
 impl Diff {
     /// Execute the diff command
-    pub fn execute(&self) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn execute(&self, cli: &cli::Args) -> Result<(), Box<dyn std::error::Error>> {
         let root = std::fs::canonicalize(&self.path)?;
-        let db_path = utils::get_chronicle_db_path()?;
+        let db_path = utils::get_chronicle_db_path(cli.db.as_ref())?;
         let conn = database::open(&db_path)?;
 
         // Determine which revisions to compare based on the number of arguments

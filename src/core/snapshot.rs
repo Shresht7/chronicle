@@ -1,19 +1,19 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use gix::bstr::ByteSlice;
 
 use crate::utils::file_lister;
 use crate::{database, models, utils};
 
-pub fn take_snapshot(path: &Path) -> Result<(), Box<dyn std::error::Error>> {
+pub fn take_snapshot(path: &Path, db_path_override: Option<&PathBuf>) -> Result<(), Box<dyn std::error::Error>> {
     let root = std::fs::canonicalize(path)?;
 
     if is_git_repository(&root) {
         println!("Git repository detected, creating snapshot from HEAD");
-        take_snapshot_from_git(&root)
+        take_snapshot_from_git(&root, db_path_override)
     } else {
         println!("Scanning directory: {}", root.display());
-        take_snapshot_from_fs(&root)
+        take_snapshot_from_fs(&root, db_path_override)
     }
 }
 
@@ -21,7 +21,7 @@ fn is_git_repository(path: &Path) -> bool {
     gix::discover(path).is_ok()
 }
 
-fn take_snapshot_from_git(root: &Path) -> Result<(), Box<dyn std::error::Error>> {
+fn take_snapshot_from_git(root: &Path, db_path_override: Option<&PathBuf>) -> Result<(), Box<dyn std::error::Error>> {
     let repo = gix::open(root)?;
     let head = repo.head_commit()?;
     let tree = head.tree()?;
@@ -72,10 +72,10 @@ fn take_snapshot_from_git(root: &Path) -> Result<(), Box<dyn std::error::Error>>
         files,
     };
 
-    database::store_snapshot(snapshot)
+    database::store_snapshot(snapshot, db_path_override)
 }
 
-fn take_snapshot_from_fs(root: &Path) -> Result<(), Box<dyn std::error::Error>> {
+fn take_snapshot_from_fs(root: &Path, db_path_override: Option<&PathBuf>) -> Result<(), Box<dyn std::error::Error>> {
     let files = file_lister::list_files_with_metadata(root)?;
 
     // Create Snapshot
@@ -86,7 +86,7 @@ fn take_snapshot_from_fs(root: &Path) -> Result<(), Box<dyn std::error::Error>> 
         files,
     };
 
-    database::store_snapshot(snapshot)
+    database::store_snapshot(snapshot, db_path_override)
 }
 
 

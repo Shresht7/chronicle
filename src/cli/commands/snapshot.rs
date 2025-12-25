@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 use clap::Parser;
 
-use crate::core;
+use crate::{core, cli};
 
 /// The command to scan a directory and record a snapshot
 #[derive(Parser, Debug)]
@@ -13,7 +13,7 @@ pub struct Snapshot {
 
 impl Snapshot {
     /// Execute the command to scan a directory and record a snapshot
-    pub fn execute(&self) -> Result<(), Box<dyn std::error::Error>> {
-        core::snapshot::take_snapshot(&self.path)
+    pub fn execute(&self, cli: &cli::Args) -> Result<(), Box<dyn std::error::Error>> {
+        core::snapshot::take_snapshot(&self.path, cli.db.as_ref())
     }
 }

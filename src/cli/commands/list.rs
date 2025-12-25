@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use chrono::{Local, DateTime};
 use serde_json;
 
-use crate::{database, models, output_formatter, utils};
+use crate::{database, models, output_formatter, utils, cli};
 use crate::output_formatter::OutputFormatter;
 
 /// Defines the possible output formats for the list command.
@@ -36,10 +36,10 @@ pub struct List {
 
 impl List {
     /// Execute the command to list all snapshots for a given directory
-    pub fn execute(&self) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn execute(&self, cli: &cli::Args) -> Result<(), Box<dyn std::error::Error>> {
         let root = std::fs::canonicalize(&self.path)?;
 
-        let db_path = utils::get_chronicle_db_path()?;
+        let db_path = utils::get_chronicle_db_path(cli.db.as_ref())?;
         let conn = database::open(&db_path)?;
 
         let snapshots = database::list_snapshots_for_root(&conn, &root.to_string_lossy())?;

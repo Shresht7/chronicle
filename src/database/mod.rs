@@ -23,8 +23,8 @@ pub fn initialize_schema(conn: &mut Connection) -> Result<()> {
     Ok(())
 }
 
-pub fn store_snapshot(snapshot: models::Snapshot) -> Result<(), Box<dyn std::error::Error>> {
-    let db_path = utils::get_chronicle_db_path()?;
+pub fn store_snapshot(snapshot: models::Snapshot, db_path_override: Option<&std::path::PathBuf>) -> Result<(), Box<dyn std::error::Error>> {
+    let db_path = utils::get_chronicle_db_path(db_path_override)?;
     let mut conn = open(&db_path)?;
 
     // Compute Diff
