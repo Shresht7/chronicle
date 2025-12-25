@@ -6,7 +6,10 @@ use gix::bstr::ByteSlice;
 use crate::utils::hashing;
 use crate::{database, models, utils}; // Added utils back for get_chronicle_db_path
 
-pub fn sync_history(path: &Path, db_path_override: Option<&PathBuf>) -> Result<(), Box<dyn std::error::Error>> {
+pub fn sync_history(
+    path: &Path,
+    db_path_override: Option<&PathBuf>,
+) -> Result<(), Box<dyn std::error::Error>> {
     let repo = gix::open(path)?;
     let head = repo.head_commit()?;
 
@@ -51,7 +54,7 @@ pub fn sync_history(path: &Path, db_path_override: Option<&PathBuf>) -> Result<(
 
             let object = repo.find_object(entry.oid)?;
             let blob = object.try_into_blob()?;
-            let content_hash = hashing::compute_blake3_hash(&blob.data);
+            let content_hash = hashing::hash_content(&blob.data);
 
             files.push(models::FileMetadata {
                 path: entry.filepath.to_path()?.to_path_buf(),
@@ -79,5 +82,3 @@ pub fn sync_history(path: &Path, db_path_override: Option<&PathBuf>) -> Result<(
     println!("Git history synchronization completed.");
     Ok(())
 }
-
-

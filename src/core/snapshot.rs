@@ -5,7 +5,10 @@ use gix::bstr::ByteSlice;
 use crate::utils::file_lister;
 use crate::{database, models, utils};
 
-pub fn take_snapshot(path: &Path, db_path_override: Option<&PathBuf>) -> Result<(), Box<dyn std::error::Error>> {
+pub fn take_snapshot(
+    path: &Path,
+    db_path_override: Option<&PathBuf>,
+) -> Result<(), Box<dyn std::error::Error>> {
     let root = std::fs::canonicalize(path)?;
 
     if is_git_repository(&root) {
@@ -21,7 +24,10 @@ fn is_git_repository(path: &Path) -> bool {
     gix::discover(path).is_ok()
 }
 
-fn take_snapshot_from_git(root: &Path, db_path_override: Option<&PathBuf>) -> Result<(), Box<dyn std::error::Error>> {
+fn take_snapshot_from_git(
+    root: &Path,
+    db_path_override: Option<&PathBuf>,
+) -> Result<(), Box<dyn std::error::Error>> {
     let repo = gix::open(root)?;
     let head = repo.head_commit()?;
     let tree = head.tree()?;
@@ -50,7 +56,7 @@ fn take_snapshot_from_git(root: &Path, db_path_override: Option<&PathBuf>) -> Re
 
         let object = repo.find_object(entry.oid)?;
         let blob = object.try_into_blob()?;
-        let content_hash = utils::hashing::compute_blake3_hash(&blob.data);
+        let content_hash = utils::hashing::hash_content(&blob.data);
 
         files.push(models::FileMetadata {
             path: entry.filepath.to_path()?.to_path_buf(),
@@ -75,7 +81,10 @@ fn take_snapshot_from_git(root: &Path, db_path_override: Option<&PathBuf>) -> Re
     database::store_snapshot(snapshot, db_path_override)
 }
 
-fn take_snapshot_from_fs(root: &Path, db_path_override: Option<&PathBuf>) -> Result<(), Box<dyn std::error::Error>> {
+fn take_snapshot_from_fs(
+    root: &Path,
+    db_path_override: Option<&PathBuf>,
+) -> Result<(), Box<dyn std::error::Error>> {
     let files = file_lister::list_files_with_metadata(root)?;
 
     // Create Snapshot
@@ -88,5 +97,3 @@ fn take_snapshot_from_fs(root: &Path, db_path_override: Option<&PathBuf>) -> Res
 
     database::store_snapshot(snapshot, db_path_override)
 }
-
-
