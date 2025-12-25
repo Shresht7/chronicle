@@ -138,7 +138,11 @@ impl Diff {
                 };
 
                 let snapshot_id = snapshot_id_result?.ok_or_else(|| {
-                    format!("Could not find a snapshot for revision '{}'", r_str)
+                    if r_str.eq_ignore_ascii_case("HEAD~1") {
+                        "Not enough snapshots to compare. Only one snapshot exists.".to_string()
+                    } else {
+                        format!("Could not find a snapshot for revision '{}'", r_str)
+                    }
                 })?;
 
                 let files = database::get_files_for_snapshot(conn, snapshot_id)?;
