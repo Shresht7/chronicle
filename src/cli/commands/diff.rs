@@ -1,5 +1,22 @@
-use clap::Parser;
+use clap::{Parser, ValueEnum};
 use std::path::PathBuf;
+use serde_json;
+
+/// Defines the possible output formats for the diff command.
+#[derive(ValueEnum, Clone, Debug)]
+pub enum OutputFormat {
+    Text, // Default format
+    Json,
+}
+
+impl std::fmt::Display for OutputFormat {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            OutputFormat::Text => write!(f, "text"),
+            OutputFormat::Json => write!(f, "json"),
+        }
+    }
+}
 
 /// The command to show the difference between snapshots or the current state
 #[derive(Parser, Debug)]
@@ -13,6 +30,10 @@ pub struct Diff {
     /// Path to the directory the snapshots belong to
     #[arg(long, default_value = ".")]
     path: PathBuf,
+
+    /// Output format
+    #[arg(long, default_value_t = OutputFormat::Text)]
+    format: OutputFormat,
 }
 
 use crate::{core, database, models, utils};
@@ -52,34 +73,42 @@ impl Diff {
             }
         };
 
-        println!("Comparing {} with {}", name1, name2);
-
         let diff = core::diff::diff_snapshots(&files1, &files2)?;
 
-        if diff.is_empty() {
-            println!("No changes detected.");
-            return Ok(());
-        }
-
-        println!("Changes detected:");
-        if !diff.added.is_empty() {
-            println!("\nAdded files:");
-            for file in diff.added {
-                println!("  + {}", file);
+        match self.format {
+            OutputFormat::Json => {
+                let json_output = serde_json::to_string_pretty(&diff)?;
+                println!("{}", json_output);
             }
-        }
+            OutputFormat::Text => {
+                println!("Comparing {} with {}", name1, name2);
 
-        if !diff.removed.is_empty() {
-            println!("\nRemoved files:");
-            for file in diff.removed {
-                println!("  - {}", file);
-            }
-        }
+                if diff.is_empty() {
+                    println!("No changes detected.");
+                    return Ok(());
+                }
 
-        if !diff.modified.is_empty() {
-            println!("\nModified files:");
-            for file in diff.modified {
-                println!("  * {}", file);
+                println!("Changes detected:");
+                if !diff.added.is_empty() {
+                    println!("\nAdded files:");
+                    for file in diff.added {
+                        println!("  + {}", file);
+                    }
+                }
+
+                if !diff.removed.is_empty() {
+                    println!("\nRemoved files:");
+                    for file in diff.removed {
+                        println!("  - {}", file);
+                    }
+                }
+
+                if !diff.modified.is_empty() {
+                    println!("\nModified files:");
+                    for file in diff.modified {
+                        println!("  * {}", file);
+                    }
+                }
             }
         }
 
@@ -109,7 +138,11 @@ impl Diff {
                 };
 
                 let snapshot_id = snapshot_id_result?.ok_or_else(|| {
-                    format!("Could not find a snapshot for revision '{}'", r_str)
+                    if r_str.eq_ignore_ascii_case("HEAD~1") {
+                        "Not enough snapshots to compare. Only one snapshot exists.".to_string()
+                    } else {
+                        format!("Could not find a snapshot for revision '{}'", r_str)
+                    }
                 })?;
 
                 let files = database::get_files_for_snapshot(conn, snapshot_id)?;
