@@ -26,6 +26,18 @@ fn take_snapshot_from_git(root: &Path) -> Result<(), Box<dyn std::error::Error>>
     let head = repo.head_commit()?;
     let tree = head.tree()?;
 
+    let committer = head.committer()?;
+    let commit_time_str = committer.time; // This is a &str
+
+    // Parse the Unix timestamp from the string. Example: "1766575549 +0530"
+    let parts: Vec<&str> = commit_time_str.split_whitespace().collect();
+    let unix_timestamp_str = parts
+        .get(0)
+        .ok_or("Failed to parse timestamp from committer.time")?;
+    let unix_timestamp = unix_timestamp_str.parse::<u64>()?;
+
+    let timestamp = std::time::UNIX_EPOCH + std::time::Duration::from_secs(unix_timestamp);
+
     let mut files = Vec::new();
     let mut recorder = gix::traverse::tree::Recorder::default();
 
@@ -37,13 +49,13 @@ fn take_snapshot_from_git(root: &Path) -> Result<(), Box<dyn std::error::Error>>
         }
 
         let object = repo.find_object(entry.oid)?;
-        let blob = object.into_blob();
+        let blob = object.try_into_blob()?;
         let content_hash = utils::hashing::compute_blake3_hash(&blob.data);
 
         files.push(models::FileMetadata {
             path: entry.filepath.to_path()?.to_path_buf(),
             bytes: blob.data.len() as u64,
-            modified_at: None,
+            modified_at: Some(timestamp),
             created_at: None,
             accessed_at: None,
             content_hash: Some(content_hash),
@@ -52,16 +64,6 @@ fn take_snapshot_from_git(root: &Path) -> Result<(), Box<dyn std::error::Error>>
 
     // Sort files by path to ensure deterministic order, same as the fs version
     files.sort_by(|a, b| a.path.cmp(&b.path));
-
-    let committer = head.committer()?;
-    let commit_time_str = committer.time; // This is a &str
-    
-    // Parse the Unix timestamp from the string. Example: "1766575549 +0530"
-    let parts: Vec<&str> = commit_time_str.split_whitespace().collect();
-    let unix_timestamp_str = parts.get(0).ok_or("Failed to parse timestamp from committer.time")?;
-    let unix_timestamp = unix_timestamp_str.parse::<u64>()?;
-
-    let timestamp = std::time::UNIX_EPOCH + std::time::Duration::from_secs(unix_timestamp);
 
     let snapshot = models::Snapshot {
         root: root.to_path_buf(),
