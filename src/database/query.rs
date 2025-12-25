@@ -23,10 +23,7 @@ use std::time::UNIX_EPOCH;
 
 use crate::models::{FileMetadata, SnapshotMetadata};
 
-pub fn get_files_for_snapshot(
-    conn: &Connection,
-    snapshot_id: i64,
-) -> Result<Vec<FileMetadata>> {
+pub fn get_files_for_snapshot(conn: &Connection, snapshot_id: i64) -> Result<Vec<FileMetadata>> {
     let mut stmt = conn.prepare(
         "SELECT
             path,
@@ -60,17 +57,13 @@ impl TryFrom<&Row<'_>> for FileMetadata {
         Ok(FileMetadata {
             path: PathBuf::from(row.get::<_, String>(0)?),
             bytes: row.get::<_, i64>(1)? as u64,
-            modified_at: modified_at
-                .map(|t| UNIX_EPOCH + std::time::Duration::from_secs(t as u64)),
-            created_at: created_at
-                .map(|t| UNIX_EPOCH + std::time::Duration::from_secs(t as u64)),
-            accessed_at: accessed_at
-                .map(|t| UNIX_EPOCH + std::time::Duration::from_secs(t as u64)),
+            modified_at: modified_at.map(|t| UNIX_EPOCH + std::time::Duration::from_secs(t as u64)),
+            created_at: created_at.map(|t| UNIX_EPOCH + std::time::Duration::from_secs(t as u64)),
+            accessed_at: accessed_at.map(|t| UNIX_EPOCH + std::time::Duration::from_secs(t as u64)),
             content_hash: row.get(5)?,
         })
     }
 }
-
 
 pub fn get_latest_snapshot_id(conn: &Connection, root: &str) -> Result<Option<i64>> {
     conn.query_row(
@@ -81,10 +74,7 @@ pub fn get_latest_snapshot_id(conn: &Connection, root: &str) -> Result<Option<i6
     .optional()
 }
 
-pub fn list_snapshots_for_root(
-    conn: &Connection,
-    root: &str,
-) -> Result<Vec<SnapshotMetadata>> {
+pub fn list_snapshots_for_root(conn: &Connection, root: &str) -> Result<Vec<SnapshotMetadata>> {
     let mut stmt = conn.prepare(
         "SELECT
             s.id,
