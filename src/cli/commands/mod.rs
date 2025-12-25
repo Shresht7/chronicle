@@ -8,7 +8,7 @@ mod sync;
 
 /// The subcommands of the command-line-interface
 #[derive(Subcommand, Debug)]
-pub enum Commands {
+pub enum Command {
     /// Scan a directory and record a snapshot
     #[command(alias = "scan")]
     Snapshot(snapshot::Snapshot),

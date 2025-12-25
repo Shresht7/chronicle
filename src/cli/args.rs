@@ -1,13 +1,13 @@
 use clap::Parser;
 use std::path::PathBuf;
 
-use crate::cli::commands::Commands;
+use crate::cli::commands::Command;
 
 /// The command-line-interface for the application
 #[derive(Parser, Debug)]
 pub struct Args {
     #[command(subcommand)]
-    pub command: Commands,
+    pub command: Command,
 
     /// Path to the chronicle database file
     #[arg(long, global = true)]
