@@ -3,7 +3,7 @@ use std::path::Path;
 
 use crate::{models, utils};
 
-pub fn list_files_with_metadata(root: &Path) -> Result<Vec<models::FileMetadata>, Box<dyn std::error::Error>> {
+pub fn scan(root: &Path) -> Result<Vec<models::FileMetadata>, Box<dyn std::error::Error>> {
     let mut files = Vec::new();
 
     // Create a walker to scan the directory

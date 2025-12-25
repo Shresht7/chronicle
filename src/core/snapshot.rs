@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 
 use gix::bstr::ByteSlice;
 
-use crate::utils::file_lister;
+use super::scan;
 use crate::{database, models, utils};
 
 pub fn take_snapshot(
@@ -85,7 +85,7 @@ fn take_snapshot_from_fs(
     root: &Path,
     db_path_override: Option<&PathBuf>,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let files = file_lister::list_files_with_metadata(root)?;
+    let files = scan::scan(root)?;
 
     // Create Snapshot
     let snapshot = models::Snapshot {

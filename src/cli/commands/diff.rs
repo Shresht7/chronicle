@@ -124,7 +124,7 @@ impl Diff {
         match rev {
             // If no revision is provided, use the current working directory
             None => {
-                let files = utils::file_lister::list_files_with_metadata(root)?;
+                let files = core::scan::scan(root)?;
                 Ok((files, "current files".to_string()))
             }
             Some(r_str) => {

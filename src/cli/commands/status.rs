@@ -2,7 +2,7 @@ use clap::{Parser, ValueEnum};
 use serde_json;
 use std::path::PathBuf;
 
-use crate::utils::file_lister;
+use crate::core::scan;
 use crate::{cli, database, utils};
 
 /// Defines the possible output formats for the status command.
@@ -42,7 +42,7 @@ impl Status {
         let mut conn = database::open(&db_path)?;
 
         // Get current files metadata
-        let current_files = file_lister::list_files_with_metadata(&root)?;
+        let current_files = scan::scan(&root)?;
 
         // Compute the diff against the last snapshot
         let diff = database::compute_diff(&mut conn, &root.to_string_lossy(), &current_files)?;
