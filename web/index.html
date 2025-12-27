@@ -8,11 +8,19 @@
 </head>
 <body>
     <h1>Chronicle Visualizations</h1>
-    <div id="visualization">Loading timeline...</div>
-    <h2>Force-Directed File Tree Visualization (Latest Snapshot)</h2>
-    <div id="tree-visualization">Loading file tree...</div>
-    <h2>Radial Tree Visualization (Latest Snapshot)</h2>
-    <div id="radial-tree-visualization">Loading radial tree...</div>
+    <div id="visualization" class="visualization-card">Loading timeline...</div>
+
+    <div class="tree-visualizations-container">
+        <div class="visualization-card">
+            <h2>Force-Directed File Tree Visualization (Latest Snapshot)</h2>
+            <div id="tree-visualization">Loading file tree...</div>
+        </div>
+        <div class="visualization-card">
+            <h2>Radial Tree Visualization (Latest Snapshot)</h2>
+            <div id="radial-tree-visualization">Loading radial tree...</div>
+        </div>
+    </div>
+
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="/main.js"></script>
 </body>
