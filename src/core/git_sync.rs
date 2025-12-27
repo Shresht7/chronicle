@@ -10,12 +10,13 @@ pub fn sync_history(
     path: &Path,
     db_path_override: Option<&PathBuf>,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let repo = gix::open(path)?;
+    let root = std::fs::canonicalize(path)?;
+    let repo = gix::open(&root)?;
     let head = repo.head_commit()?;
 
     println!(
         "Starting Git history synchronization from: {}",
-        path.display()
+        root.display()
     );
 
     let db_path = utils::get_chronicle_db_path(db_path_override)?;
@@ -29,7 +30,7 @@ pub fn sync_history(
         let tree = commit.tree()?;
 
         // Idempotency check
-        if database::snapshot_exists(&conn, &path.to_string_lossy(), &commit_id.to_string())? {
+        if database::snapshot_exists(&conn, &root.to_string_lossy(), &commit_id.to_string())? {
             println!("Skipping already synchronized commit: {commit_id}");
             continue;
         }
@@ -68,7 +69,7 @@ pub fn sync_history(
         files.sort_by(|a, b| a.path.cmp(&b.path));
 
         let snapshot = models::Snapshot {
-            root: path.to_path_buf(),
+            root: root.to_path_buf(),
             timestamp,
             git_commit_hash: Some(commit.id().to_string()),
             files,
