@@ -227,10 +227,10 @@ const defaultRadialGraphOptions = {
     linkStrokeLineJoin: 'round',
     linkStrokeWidth: 1.5,
 
-    nodeFill: '#fff',
+    nodeFill: '#333', // Changed for visibility
     nodeRadius: 2.5,
-    nodeTextStroke: "#eee",
-    nodeTextStrokeWidth: 2,
+    nodeTextStroke: "#333", // Changed for visibility
+    nodeTextStrokeWidth: 0, // Removed stroke for text
     nodeTextSize: 10,
 };
 
@@ -252,36 +252,34 @@ async function drawRadialTreeVisualization() {
 
     d3.select("#radial-tree-visualization").text(""); // Clear initial loading text
 
-    const options = { ...defaultRadialGraphOptions }; // Use default options
+    const options = { ...defaultRadialGraphOptions };
 
-    const width = (2 * options.radius) + options.marginLeft + options.marginRight;
-    const height = (2 * options.radius) + options.marginTop + options.marginBottom;
-
+    // Initial SVG dimensions, not directly mapping to viewbox size
+    const svgWidth = 960; // Use a fixed width for the container
+    const svgHeight = 600; // Use a fixed height for the container
 
     const svg = d3.select("#radial-tree-visualization").append("svg")
-        .attr("width", width)
-        .attr("height", height)
-        .attr("viewBox", [
-            -width / 2, // Centered viewbox
-            -height / 2,
-            width,
-            height
-        ]);
+        .attr("width", svgWidth)
+        .attr("height", svgHeight);
 
     const g = svg.append("g"); // Group for tree elements
 
-    // Create tree
+    // Create tree layout
     const tree = d3.tree()
-        .size([options.angle, options.radius])
+        .size([options.angle, options.radius]) // Initial size, will be scaled
         .separation(options.separator);
 
-    // Create node tree
-    const root = tree(d3.hierarchy(treeData)
-        .sort(options.sortFn)); // Sort hierarchy directly
-
-    // Create descendants and links
+    const root = tree(d3.hierarchy(treeData).sort(options.sortFn));
     const descendants = root.descendants();
     const links = root.links();
+
+    // Calculate bounding box for auto-fit
+    const max_y = d3.max(descendants, d => d.y);
+    const scale = Math.min(1, Math.min(svgWidth / (2 * max_y), svgHeight / (2 * max_y)) * 0.9); // 90% of available space
+    const initialTransform = d3.zoomIdentity
+        .translate(svgWidth / 2, svgHeight / 2) // Center the tree
+        .scale(scale);
+
 
     // Create links
     g.append("g")
@@ -301,7 +299,7 @@ async function drawRadialTreeVisualization() {
         .selectAll("a")
         .data(descendants)
         .join("a")
-        .attr("transform", d => `rotate(${d.x * 180 / Math.PI - 90}) translate(${d.y},0)`);
+        .attr("transform", d => `rotate(${d.x * 180 / Math.PI - 90}) translate(${d.y},0)`); // Corrected rotation for radial tree
 
     // Add node circle
     node.append("circle")
@@ -323,14 +321,15 @@ async function drawRadialTreeVisualization() {
         .attr("stroke-width", options.nodeTextStrokeWidth)
         .attr("font-size", options.nodeTextSize)
         .attr('fill', options.nodeFill)
-        .text(d => d.data.name); // Removed 'i' parameter as it's not used in this context
+        .text(d => d.data.name);
 
     // Add zoom/pan for radial tree
     const radialZoomBehavior = d3.zoom()
-        .scaleExtent([0.1, 10]) // Adjust scale extent as needed
+        .scaleExtent([0.1, 10])
         .on("zoom", zoomedRadialTree);
 
-    svg.call(radialZoomBehavior);
+    svg.call(radialZoomBehavior); // Apply zoom to the SVG
+    svg.call(radialZoomBehavior.transform, initialTransform); // Apply initial transform
 
     function zoomedRadialTree(event) {
         g.attr("transform", event.transform);
