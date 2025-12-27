@@ -120,8 +120,18 @@ async function drawTreeVisualization() {
         .attr("width", width)
         .attr("height", height);
 
-    const g = svg.append("g")
-        .attr("transform", `translate(${width / 2},${height / 2})`); // Center the graph
+    const g = svg.append("g"); // Main group to apply transforms
+
+    // Add zoom behavior to the SVG
+    const zoomBehavior = d3.zoom()
+        .scaleExtent([0.1, 10]) // Adjust scale extent as needed
+        .on("zoom", zoomedTree);
+
+    svg.call(zoomBehavior);
+
+    function zoomedTree(event) {
+        g.attr("transform", event.transform);
+    }
 
     // Create the hierarchy
     const root = d3.hierarchy(treeData);
@@ -130,7 +140,7 @@ async function drawTreeVisualization() {
     const simulation = d3.forceSimulation(root.descendants())
         .force("link", d3.forceLink(root.links()).id(d => d.id).distance(100))
         .force("charge", d3.forceManyBody().strength(-200)) // Repel nodes
-        .force("center", d3.forceCenter(0, 0)); // Keep centered
+        .force("center", d3.forceCenter(width / 2, height / 2)); // Keep centered within the SVG, not the `g`
 
     const link = g.append("g")
         .attr("stroke", "#999")
@@ -172,7 +182,7 @@ async function drawTreeVisualization() {
             .attr("y", d => d.y + 3);
     });
 
-    // Add drag functionality
+    // Add drag functionality to nodes
     node.call(d3.drag()
         .on("start", dragstarted)
         .on("drag", dragged)
