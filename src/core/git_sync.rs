@@ -19,18 +19,18 @@ pub fn sync_history(
     );
 
     let db_path = utils::get_chronicle_db_path(db_path_override)?;
-    let mut conn = database::open(&db_path)?;
+    let conn = database::open(&db_path)?;
 
     // Iterate through all commits
-    let mut rev_walk = head.ancestors().all()?;
-    while let Some(commit_id) = rev_walk.next() {
-        let commit_id = commit_id?.id(); // Get the actual commit ID
+    let rev_walk = head.ancestors().all()?;
+    for commit_id_result in rev_walk {
+        let commit_id = commit_id_result?.id(); // Get the actual commit ID
         let commit = repo.find_object(commit_id)?.try_into_commit()?;
         let tree = commit.tree()?;
 
         // Idempotency check
-        if database::snapshot_exists(&mut conn, &path.to_string_lossy(), &commit_id.to_string())? {
-            println!("Skipping already synchronized commit: {}", commit_id);
+        if database::snapshot_exists(&conn, &path.to_string_lossy(), &commit_id.to_string())? {
+            println!("Skipping already synchronized commit: {commit_id}");
             continue;
         }
 
@@ -38,7 +38,7 @@ pub fn sync_history(
         let commit_time_str = committer.time;
         let parts: Vec<&str> = commit_time_str.split_whitespace().collect();
         let unix_timestamp_str = parts
-            .get(0)
+            .first()
             .ok_or("Failed to parse timestamp from committer.time")?;
         let unix_timestamp = unix_timestamp_str.parse::<u64>()?;
         let timestamp = SystemTime::UNIX_EPOCH + std::time::Duration::from_secs(unix_timestamp);
@@ -76,7 +76,7 @@ pub fn sync_history(
 
         database::store_snapshot(snapshot, db_path_override)?;
 
-        println!("Processed commit: {}", commit_id);
+        println!("Processed commit: {commit_id}");
     }
 
     println!("Git history synchronization completed.");

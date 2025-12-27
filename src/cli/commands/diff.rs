@@ -77,10 +77,10 @@ impl Diff {
         match self.format {
             OutputFormat::Json => {
                 let json_output = serde_json::to_string_pretty(&diff)?;
-                println!("{}", json_output);
+                println!("{json_output}");
             }
             OutputFormat::Text => {
-                println!("Comparing {} with {}", name1, name2);
+                println!("Comparing {name1} with {name2}");
 
                 if diff.is_empty() {
                     println!("No changes detected.");
@@ -91,21 +91,21 @@ impl Diff {
                 if !diff.added.is_empty() {
                     println!("\nAdded files:");
                     for file in diff.added {
-                        println!("  + {}", file);
+                        println!("  + {file}");
                     }
                 }
 
                 if !diff.removed.is_empty() {
                     println!("\nRemoved files:");
                     for file in diff.removed {
-                        println!("  - {}", file);
+                        println!("  - {file}");
                     }
                 }
 
                 if !diff.modified.is_empty() {
                     println!("\nModified files:");
                     for file in diff.modified {
-                        println!("  * {}", file);
+                        println!("  * {file}");
                     }
                 }
             }
@@ -140,12 +140,12 @@ impl Diff {
                     if r_str.eq_ignore_ascii_case("HEAD~1") {
                         "Not enough snapshots to compare. Only one snapshot exists.".to_string()
                     } else {
-                        format!("Could not find a snapshot for revision '{}'", r_str)
+                        format!("Could not find a snapshot for revision '{r_str}'")
                     }
                 })?;
 
                 let files = database::get_files_for_snapshot(conn, snapshot_id)?;
-                Ok((files, format!("snapshot {}", snapshot_id)))
+                Ok((files, format!("snapshot {snapshot_id}")))
             }
         }
     }

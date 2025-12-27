@@ -62,7 +62,7 @@ pub fn store_snapshot(
 
     // Insert Snapshot
     let snapshot_id = insert_snapshot(&mut conn, &snapshot)?;
-    println!("Snapshot stored with id {}", snapshot_id);
+    println!("Snapshot stored with id {snapshot_id}");
 
     Ok(())
 }

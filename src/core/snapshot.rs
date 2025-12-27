@@ -37,9 +37,8 @@ fn take_snapshot_from_git(
 
     // Parse the Unix timestamp from the string. Example: "1766575549 +0530"
     let parts: Vec<&str> = commit_time_str.split_whitespace().collect();
-    let unix_timestamp_str = parts
-        .get(0)
-        .ok_or("Failed to parse timestamp from committer.time")?;
+            let unix_timestamp_str = parts
+                .first()        .ok_or("Failed to parse timestamp from committer.time")?;
     let unix_timestamp = unix_timestamp_str.parse::<u64>()?;
 
     let timestamp = std::time::UNIX_EPOCH + std::time::Duration::from_secs(unix_timestamp);

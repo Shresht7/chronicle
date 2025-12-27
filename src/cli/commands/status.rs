@@ -50,7 +50,7 @@ impl Status {
         match self.format {
             OutputFormat::Json => {
                 let json_output = serde_json::to_string_pretty(&diff)?;
-                println!("{}", json_output);
+                println!("{json_output}");
             }
             OutputFormat::Text => {
                 println!("Computing status for directory: {}", root.display());
@@ -64,21 +64,21 @@ impl Status {
                 if !diff.added.is_empty() {
                     println!("\nAdded files:");
                     for file in diff.added {
-                        println!("  + {}", file);
+                        println!("  + {file}");
                     }
                 }
 
                 if !diff.removed.is_empty() {
                     println!("\nRemoved files:");
                     for file in diff.removed {
-                        println!("  - {}", file);
+                        println!("  - {file}");
                     }
                 }
 
                 if !diff.modified.is_empty() {
                     println!("\nModified files:");
                     for file in diff.modified {
-                        println!("  * {}", file);
+                        println!("  * {file}");
                     }
                 }
             }

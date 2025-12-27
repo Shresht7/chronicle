@@ -52,7 +52,7 @@ impl List {
         match self.format {
             OutputFormat::Json => {
                 let json_output = serde_json::to_string_pretty(&snapshots)?;
-                println!("{}", json_output);
+                println!("{json_output}");
             }
             OutputFormat::Tsv => {
                 let headers = vec![
