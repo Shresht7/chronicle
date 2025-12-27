@@ -1,0 +1,27 @@
+body {
+    font-family: sans-serif;
+    margin: 20px;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+h1 {
+    color: #0056b3;
+}
+
+#visualization {
+    margin-top: 20px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    padding: 10px;
+}
+
+svg {
+    display: block;
+    margin: auto;
+}
+
+circle {
+    stroke: black;
+    stroke-width: 0.5px;
+}
