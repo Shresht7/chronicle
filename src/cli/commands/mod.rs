@@ -1,10 +1,10 @@
 use clap::Subcommand;
 
 mod diff;
+mod git;
 mod list;
 mod snapshot;
 mod status;
-mod sync;
 
 /// The subcommands of the command-line-interface
 #[derive(Subcommand, Debug)]
@@ -25,5 +25,5 @@ pub enum Command {
     Diff(diff::Diff),
 
     /// Synchronize Git history into chronicle
-    Sync(sync::Sync),
+    Git(git::Git),
 }

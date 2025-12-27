@@ -105,7 +105,7 @@ Snapshot stored with id 23
 Imports the entire commit history of a Git repository as `chronicle` snapshots.
 
 ```bash
-chronicle sync /path/to/git/repo
+chronicle git /path/to/git/repo
 ```
 
 This command is idempotent; already imported commits will be skipped.
