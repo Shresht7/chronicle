@@ -19,15 +19,9 @@ pub fn diff_snapshots(
     let files1_paths: HashSet<String> = files1_map.keys().cloned().collect();
     let files2_paths: HashSet<String> = files2_map.keys().cloned().collect();
 
-    let added: Vec<String> = files2_paths
-        .difference(&files1_paths)
-        .cloned()
-        .collect();
+    let added: Vec<String> = files2_paths.difference(&files1_paths).cloned().collect();
 
-    let removed: Vec<String> = files1_paths
-        .difference(&files2_paths)
-        .cloned()
-        .collect();
+    let removed: Vec<String> = files1_paths.difference(&files2_paths).cloned().collect();
 
     let modified: Vec<String> = files1_paths
         .intersection(&files2_paths)

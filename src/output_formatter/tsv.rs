@@ -15,4 +15,3 @@ impl OutputFormatter for TsvFormatter {
         output
     }
 }
-

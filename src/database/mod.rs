@@ -23,13 +23,15 @@ pub fn initialize_schema(conn: &mut Connection) -> Result<()> {
     Ok(())
 }
 
-pub fn store_snapshot(snapshot: models::Snapshot, db_path_override: Option<&std::path::PathBuf>) -> Result<(), Box<dyn std::error::Error>> {
+pub fn store_snapshot(
+    snapshot: models::Snapshot,
+    db_path_override: Option<&std::path::PathBuf>,
+) -> Result<(), Box<dyn std::error::Error>> {
     let db_path = utils::get_chronicle_db_path(db_path_override)?;
     let mut conn = open(&db_path)?;
 
     // Compute Diff
-    let diff =
-        compute_diff(&mut conn, &snapshot.root.to_string_lossy(), &snapshot.files)?;
+    let diff = compute_diff(&mut conn, &snapshot.root.to_string_lossy(), &snapshot.files)?;
     if diff.is_empty() {
         println!("No changes detected");
         return Ok(());
