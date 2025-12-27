@@ -128,9 +128,9 @@ ID    Timestamp              Files    Size
 
 `log` can be used as an alias for `list`. The output format can be changed to JSON with `--format json`.
 
-Compares the current state of the directory against the latest snapshot. The output format can be changed to JSON with `--format json`.
+### Check status
 
-Compares the current state of the directory against the latest snapshot.
+Compares the current state of the directory against the latest snapshot. The output format can be changed to JSON with `--format json`.
 
 ```bash
 chronicle status /path/to/directory
@@ -180,12 +180,10 @@ The database schema is internal and may evolve
 
 ## Planned / Future Work
 
-`chronicle` is intentionally built in layers. Planned additions include:
-- Querying snapshot history
-- Visualization pipelines (SVG, graphs, timelines)
-- Git integration (introducing `sync` command for history import and Git-aware `snapshot`)
-- Additional diff and aggregations views
-These will build on the existing snapshot data model
+`chronicle` is intentionally built in layers. Future additions will build on the existing snapshot data model and include:
+- **Visualization Pipelines:** Generating SVG timelines, graphs, and treemaps to visualize project history.
+- **Advanced Querying:** Introducing a `query` command for freeform questions and analysis of the snapshot database.
+- **Additional diff and aggregations views.**
 
 ---
 
