@@ -206,7 +206,139 @@ async function drawTreeVisualization() {
     }
 }
 
+// --- Radial Tree Graph Visualization ---
+const defaultRadialGraphOptions = {
+    // SVG options
+    marginTop: 10,
+    marginRight: 10,
+    marginBottom: 10,
+    marginLeft: 10,
+
+    // Radial Tree Options
+    angle: 2 * Math.PI, // 360 degrees sweep
+    radius: 800, // Adjusted for typical screen size
+    separator: (a, b) => a.parent === b.parent ? 1 : 2, // 1 for siblings, 2 for non-siblings
+    sortFn: (a, b) => d3.ascending(a.data.name, b.data.name), // sort by name in ascending order
+
+    // Styling Options - Links
+    linkStroke: '#333',
+    linkStrokeOpacity: 0.6,
+    linkStrokeLineCap: 'round',
+    linkStrokeLineJoin: 'round',
+    linkStrokeWidth: 1.5,
+
+    nodeFill: '#fff',
+    nodeRadius: 2.5,
+    nodeTextStroke: "#eee",
+    nodeTextStrokeWidth: 2,
+    nodeTextSize: 10,
+};
+
+async function drawRadialTreeVisualization() {
+    let treeData;
+    try {
+        treeData = await d3.json("/api/latest_snapshot_tree");
+        console.log("Fetched radial tree data:", treeData);
+    } catch (error) {
+        console.error("Error fetching radial tree data:", error);
+        d3.select("#radial-tree-visualization").text("Error loading radial tree data.");
+        return;
+    }
+
+    if (!treeData || !treeData.name) {
+        d3.select("#radial-tree-visualization").text("No radial tree data available.");
+        return;
+    }
+
+    d3.select("#radial-tree-visualization").text(""); // Clear initial loading text
+
+    const options = { ...defaultRadialGraphOptions }; // Use default options
+
+    const width = (2 * options.radius) + options.marginLeft + options.marginRight;
+    const height = (2 * options.radius) + options.marginTop + options.marginBottom;
+
+
+    const svg = d3.select("#radial-tree-visualization").append("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .attr("viewBox", [
+            -width / 2, // Centered viewbox
+            -height / 2,
+            width,
+            height
+        ]);
+
+    const g = svg.append("g"); // Group for tree elements
+
+    // Create tree
+    const tree = d3.tree()
+        .size([options.angle, options.radius])
+        .separation(options.separator);
+
+    // Create node tree
+    const root = tree(d3.hierarchy(treeData)
+        .sort(options.sortFn)); // Sort hierarchy directly
+
+    // Create descendants and links
+    const descendants = root.descendants();
+    const links = root.links();
+
+    // Create links
+    g.append("g")
+        .attr("fill", "none")
+        .attr("stroke", options.linkStroke)
+        .attr("stroke-width", options.linkStrokeWidth)
+        .attr("stroke-opacity", options.linkStrokeOpacity)
+        .attr("stroke-linecap", options.linkStrokeLineCap)
+        .attr("stroke-linejoin", options.linkStrokeLineJoin)
+        .selectAll("path")
+        .data(links)
+        .join("path")
+        .attr("d", d3.linkRadial().angle(d => d.x).radius(d => d.y));
+
+    // Create nodes
+    const node = g.append("g")
+        .selectAll("a")
+        .data(descendants)
+        .join("a")
+        .attr("transform", d => `rotate(${d.x * 180 / Math.PI - 90}) translate(${d.y},0)`);
+
+    // Add node circle
+    node.append("circle")
+        .attr("fill", options.nodeFill)
+        .attr("r", options.nodeRadius);
+
+    // Add title to the nodes
+    node.append('title')
+        .text(d => d.data.name);
+
+    // Add node text
+    node.append("text")
+        .attr("transform", d => `rotate(${d.x >= Math.PI ? 180 : 0})`)
+        .attr("dy", "0.32em")
+        .attr("x", d => d.x < Math.PI === !d.children ? 6 : -6)
+        .attr("text-anchor", d => d.x < Math.PI === !d.children ? "start" : "end")
+        .attr("paint-order", "stroke")
+        .attr("stroke", options.nodeTextStroke)
+        .attr("stroke-width", options.nodeTextStrokeWidth)
+        .attr("font-size", options.nodeTextSize)
+        .attr('fill', options.nodeFill)
+        .text(d => d.data.name); // Removed 'i' parameter as it's not used in this context
+
+    // Add zoom/pan for radial tree
+    const radialZoomBehavior = d3.zoom()
+        .scaleExtent([0.1, 10]) // Adjust scale extent as needed
+        .on("zoom", zoomedRadialTree);
+
+    svg.call(radialZoomBehavior);
+
+    function zoomedRadialTree(event) {
+        g.attr("transform", event.transform);
+    }
+}
+
 
 // Call both visualizations
 drawTimelineVisualization();
 drawTreeVisualization();
+drawRadialTreeVisualization(); // Call the new radial tree visualization
