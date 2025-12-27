@@ -182,7 +182,6 @@ The database schema is internal and may evolve
 
 `chronicle` is intentionally built in layers. Future additions will build on the existing snapshot data model and include:
 - **Visualization Pipelines:** Generating SVG timelines, graphs, and treemaps to visualize project history.
-- **Advanced Querying:** Introducing a `query` command for freeform questions and analysis of the snapshot database.
 - **Additional diff and aggregations views.**
 
 ---
