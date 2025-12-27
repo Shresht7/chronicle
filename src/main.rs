@@ -4,6 +4,7 @@ mod database;
 mod models;
 mod output_formatter;
 mod utils;
+mod server; // Added this line
 
 /// The main entrypoint of the application
 fn main() {
@@ -25,5 +26,6 @@ fn run(cli: &cli::args::Args) -> Result<(), Box<dyn std::error::Error>> {
         cli::commands::Command::Status(cmd) => cmd.execute(cli),
         cli::commands::Command::Diff(cmd) => cmd.execute(cli),
         cli::commands::Command::Git(cmd) => cmd.execute(cli),
+        cli::commands::Command::Serve(cmd) => cmd.execute(cli),
     }
 }
