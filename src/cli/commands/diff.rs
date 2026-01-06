@@ -1,22 +1,9 @@
+use std::path::{Path, PathBuf};
+
 use clap::{Parser, ValueEnum};
 use serde_json;
-use std::path::PathBuf;
 
-/// Defines the possible output formats for the diff command.
-#[derive(ValueEnum, Clone, Debug)]
-pub enum OutputFormat {
-    Text, // Default format
-    Json,
-}
-
-impl std::fmt::Display for OutputFormat {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            OutputFormat::Text => write!(f, "text"),
-            OutputFormat::Json => write!(f, "json"),
-        }
-    }
-}
+use crate::{cli, core, database, models, utils};
 
 /// The command to show the difference between snapshots or the current state
 #[derive(Parser, Debug)]
@@ -36,8 +23,21 @@ pub struct Diff {
     format: OutputFormat,
 }
 
-use crate::{cli, core, database, models, utils};
-use std::path::Path;
+/// Defines the possible output formats for the diff command.
+#[derive(ValueEnum, Clone, Debug)]
+pub enum OutputFormat {
+    Text, // Default format
+    Json,
+}
+
+impl std::fmt::Display for OutputFormat {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            OutputFormat::Text => write!(f, "text"),
+            OutputFormat::Json => write!(f, "json"),
+        }
+    }
+}
 
 impl Diff {
     /// Execute the diff command
