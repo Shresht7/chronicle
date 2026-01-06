@@ -6,6 +6,8 @@ mod list;
 mod snapshot;
 mod status;
 
+mod serve;
+
 /// The subcommands of the command-line-interface
 #[derive(Subcommand, Debug)]
 pub enum Command {
@@ -26,4 +28,7 @@ pub enum Command {
 
     /// Synchronize Git history into chronicle
     Git(git::Git),
+
+    /// Start a web server for visualizations
+    Serve(serve::Serve),
 }

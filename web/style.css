@@ -1,0 +1,55 @@
+body {
+    font-family: sans-serif;
+    margin: 20px;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+h1,
+h2 {
+    color: #0056b3;
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 15px;
+}
+
+.visualization-card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+/* Container for side-by-side tree visualizations */
+.tree-visualizations-container {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.tree-visualizations-container .visualization-card {
+    flex: 1;
+    min-width: 450px;
+}
+
+/* Specific styling for SVG elements */
+svg {
+    display: block;
+    margin: auto;
+    /* border: 1px dashed #ccc; */
+}
+
+circle {
+    stroke: black;
+    stroke-width: 0.5px;
+}
+
+.node-label {
+    font-size: 10px;
+    fill: #333;
+    stroke: none;
+}
