@@ -1,12 +1,10 @@
+use std::env;
+use std::path::{Path, PathBuf};
+
 use actix_files::Files;
 use actix_web::{App, HttpResponse, HttpServer, Responder, get, web};
 use chrono::{DateTime, Utc};
 use serde::Serialize;
-use std::env;
-use std::path::{Path, PathBuf};
-
-// Removed unused rusqlite::Connection import
-// Removed unused utils import
 
 use crate::{database, models};
 
@@ -38,7 +36,11 @@ fn build_file_tree(files: Vec<models::FileMetadata>) -> ApiNode {
     };
 
     // Helper to insert a file's path components into the tree
-    fn insert_into_tree(current_node: &mut ApiNode, path_components: &[&Path], file_bytes: Option<u64>) {
+    fn insert_into_tree(
+        current_node: &mut ApiNode,
+        path_components: &[&Path],
+        file_bytes: Option<u64>,
+    ) {
         if path_components.is_empty() {
             return;
         }
@@ -63,7 +65,7 @@ fn build_file_tree(files: Vec<models::FileMetadata>) -> ApiNode {
                     child.size = file_bytes; // Update size for file
                 }
                 insert_into_tree(child, &path_components[1..], file_bytes);
-            },
+            }
             None => {
                 // Create new child
                 let mut new_child = ApiNode {
@@ -178,9 +180,11 @@ async fn get_latest_snapshot_tree(db_path: web::Data<PathBuf>) -> impl Responder
     };
     let root_str = canonical_current_dir.to_string_lossy().to_string();
 
-    let latest_snapshot_id = match database::get_latest_snapshot_id(&conn, &root_str) { // Corrected path
+    let latest_snapshot_id = match database::get_latest_snapshot_id(&conn, &root_str) {
         Ok(Some(id)) => id,
-        Ok(None) => return HttpResponse::NotFound().body("No latest snapshot found for this directory."),
+        Ok(None) => {
+            return HttpResponse::NotFound().body("No latest snapshot found for this directory.");
+        }
         Err(e) => {
             eprintln!("Error getting latest snapshot ID: {}", e);
             return HttpResponse::InternalServerError()
@@ -188,7 +192,7 @@ async fn get_latest_snapshot_tree(db_path: web::Data<PathBuf>) -> impl Responder
         }
     };
 
-    let files = match database::get_files_for_snapshot(&conn, latest_snapshot_id) { // Corrected path
+    let files = match database::get_files_for_snapshot(&conn, latest_snapshot_id) {
         Ok(f) => f,
         Err(e) => {
             eprintln!("Error getting files for snapshot: {}", e);
@@ -196,12 +200,10 @@ async fn get_latest_snapshot_tree(db_path: web::Data<PathBuf>) -> impl Responder
                 .body(format!("Error getting files for snapshot: {}", e));
         }
     };
-
     let file_tree = build_file_tree(files);
 
     HttpResponse::Ok().json(file_tree)
 }
-
 
 pub async fn start_server(port: u16, db_path: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
     let addr = format!("127.0.0.1:{}", port);

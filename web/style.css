@@ -5,7 +5,8 @@ body {
     color: #333;
 }
 
-h1, h2 {
+h1,
+h2 {
     color: #0056b3;
     text-align: center;
     margin-top: 20px;
@@ -18,28 +19,27 @@ h1, h2 {
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     padding: 20px;
-    margin-bottom: 20px; /* Space between cards */
-    overflow: hidden; /* Clear floats/contain SVG */
+    margin-bottom: 20px;
+    overflow: hidden;
 }
 
 /* Container for side-by-side tree visualizations */
 .tree-visualizations-container {
-    display: flex; /* Use flexbox for side-by-side layout */
-    gap: 20px; /* Gap between the two cards */
+    display: flex;
+    gap: 20px;
     margin-top: 20px;
-    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    flex-wrap: wrap;
 }
 
 .tree-visualizations-container .visualization-card {
-    flex: 1; /* Each card takes equal space */
-    min-width: 450px; /* Minimum width before wrapping */
+    flex: 1;
+    min-width: 450px;
 }
 
 /* Specific styling for SVG elements */
 svg {
     display: block;
     margin: auto;
-    /* Optional: Add a subtle border around the SVG area itself if desired */
     /* border: 1px dashed #ccc; */
 }
 
@@ -50,6 +50,6 @@ circle {
 
 .node-label {
     font-size: 10px;
-    fill: #333; /* Make text darker for better visibility */
-    stroke: none; /* Remove stroke from text labels */
+    fill: #333;
+    stroke: none;
 }

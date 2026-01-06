@@ -3,8 +3,8 @@ mod core;
 mod database;
 mod models;
 mod output_formatter;
+mod server;
 mod utils;
-mod server; // Added this line
 
 /// The main entrypoint of the application
 fn main() {

@@ -69,9 +69,9 @@ async function drawTimelineVisualization() {
         .attr("r", 5)
         .attr("fill", "steelblue");
 
-    // Add zoom behavior
+    // Zoom behavior
     const zoom = d3.zoom()
-        .scaleExtent([1, 100]) // Increased maximum zoom level
+        .scaleExtent([1, 100])
         .translateExtent([[0, 0], [width, height]]) // Prevent panning outside limits
         .extent([[0, 0], [width, height]])
         .on("zoom", zoomed);
@@ -216,7 +216,7 @@ const defaultRadialGraphOptions = {
 
     // Radial Tree Options
     angle: 2 * Math.PI, // 360 degrees sweep
-    radius: 800, // Adjusted for typical screen size
+    radius: 800,
     separator: (a, b) => a.parent === b.parent ? 1 : 2, // 1 for siblings, 2 for non-siblings
     sortFn: (a, b) => d3.ascending(a.data.name, b.data.name), // sort by name in ascending order
 
@@ -227,10 +227,10 @@ const defaultRadialGraphOptions = {
     linkStrokeLineJoin: 'round',
     linkStrokeWidth: 1.5,
 
-    nodeFill: '#333', // Changed for visibility
+    nodeFill: '#333',
     nodeRadius: 2.5,
-    nodeTextStroke: "#333", // Changed for visibility
-    nodeTextStrokeWidth: 0, // Removed stroke for text
+    nodeTextStroke: "#333",
+    nodeTextStrokeWidth: 0,
     nodeTextSize: 10,
 };
 
@@ -299,7 +299,7 @@ async function drawRadialTreeVisualization() {
         .selectAll("a")
         .data(descendants)
         .join("a")
-        .attr("transform", d => `rotate(${d.x * 180 / Math.PI - 90}) translate(${d.y},0)`); // Corrected rotation for radial tree
+        .attr("transform", d => `rotate(${d.x * 180 / Math.PI - 90}) translate(${d.y},0)`);
 
     // Add node circle
     node.append("circle")
@@ -337,7 +337,7 @@ async function drawRadialTreeVisualization() {
 }
 
 
-// Call both visualizations
+// Draw all visualizations
 drawTimelineVisualization();
 drawTreeVisualization();
-drawRadialTreeVisualization(); // Call the new radial tree visualization
+drawRadialTreeVisualization();
