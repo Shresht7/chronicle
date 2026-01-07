@@ -15,27 +15,27 @@ pub async fn get_snapshots(db_path: web::Data<PathBuf>) -> impl Responder {
     let conn = match database::open(db_path_ref) {
         Ok(c) => c,
         Err(e) => {
-            eprintln!("Error opening database: {}", e);
+            eprintln!("Error opening database: {e}");
             return HttpResponse::InternalServerError()
-                .body(format!("Error opening database: {}", e));
+                .body(format!("Error opening database: {e}"));
         }
     };
 
     let current_dir = match env::current_dir() {
         Ok(dir) => dir,
         Err(e) => {
-            eprintln!("Error getting current directory: {}", e);
+            eprintln!("Error getting current directory: {e}");
             return HttpResponse::InternalServerError()
-                .body(format!("Error getting current directory: {}", e));
+                .body(format!("Error getting current directory: {e}"));
         }
     };
 
     let canonical_current_dir = match std::fs::canonicalize(&current_dir) {
         Ok(c_dir) => c_dir,
         Err(e) => {
-            eprintln!("Error canonicalizing current directory: {}", e);
+            eprintln!("Error canonicalizing current directory: {e}");
             return HttpResponse::InternalServerError()
-                .body(format!("Error canonicalizing current directory: {}", e));
+                .body(format!("Error canonicalizing current directory: {e}"));
         }
     };
     let root_str = canonical_current_dir.to_string_lossy().to_string();
@@ -43,9 +43,9 @@ pub async fn get_snapshots(db_path: web::Data<PathBuf>) -> impl Responder {
     let snapshots = match database::list_snapshots_for_root(&conn, &root_str) {
         Ok(s) => s,
         Err(e) => {
-            eprintln!("Error listing snapshots: {}", e);
+            eprintln!("Error listing snapshots: {e}");
             return HttpResponse::InternalServerError()
-                .body(format!("Error listing snapshots: {}", e));
+                .body(format!("Error listing snapshots: {e}"));
         }
     };
 
@@ -72,27 +72,27 @@ pub async fn get_latest_snapshot_tree(db_path: web::Data<PathBuf>) -> impl Respo
     let conn = match database::open(db_path_ref) {
         Ok(c) => c,
         Err(e) => {
-            eprintln!("Error opening database: {}", e);
+            eprintln!("Error opening database: {e}");
             return HttpResponse::InternalServerError()
-                .body(format!("Error opening database: {}", e));
+                .body(format!("Error opening database: {e}"));
         }
     };
 
     let current_dir = match env::current_dir() {
         Ok(dir) => dir,
         Err(e) => {
-            eprintln!("Error getting current directory: {}", e);
+            eprintln!("Error getting current directory: {e}");
             return HttpResponse::InternalServerError()
-                .body(format!("Error getting current directory: {}", e));
+                .body(format!("Error getting current directory: {e}"));
         }
     };
 
     let canonical_current_dir = match std::fs::canonicalize(&current_dir) {
         Ok(c_dir) => c_dir,
         Err(e) => {
-            eprintln!("Error canonicalizing current directory: {}", e);
+            eprintln!("Error canonicalizing current directory: {e}");
             return HttpResponse::InternalServerError()
-                .body(format!("Error canonicalizing current directory: {}", e));
+                .body(format!("Error canonicalizing current directory: {e}"));
         }
     };
     let root_str = canonical_current_dir.to_string_lossy().to_string();
@@ -103,18 +103,18 @@ pub async fn get_latest_snapshot_tree(db_path: web::Data<PathBuf>) -> impl Respo
             return HttpResponse::NotFound().body("No latest snapshot found for this directory.");
         }
         Err(e) => {
-            eprintln!("Error getting latest snapshot ID: {}", e);
+            eprintln!("Error getting latest snapshot ID: {e}");
             return HttpResponse::InternalServerError()
-                .body(format!("Error getting latest snapshot ID: {}", e));
+                .body(format!("Error getting latest snapshot ID: {e}"));
         }
     };
 
     let files = match database::get_files_for_snapshot(&conn, latest_snapshot_id) {
         Ok(f) => f,
         Err(e) => {
-            eprintln!("Error getting files for snapshot: {}", e);
+            eprintln!("Error getting files for snapshot: {e}");
             return HttpResponse::InternalServerError()
-                .body(format!("Error getting files for snapshot: {}", e));
+                .body(format!("Error getting files for snapshot: {e}"));
         }
     };
 

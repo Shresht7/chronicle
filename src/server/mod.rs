@@ -8,8 +8,8 @@ pub mod routes;
 pub mod tree;
 
 pub async fn start_server(port: u16, db_path: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
-    let addr = format!("127.0.0.1:{}", port);
-    println!("Starting web server on: http://{}", addr);
+    let addr = format!("127.0.0.1:{port}");
+    println!("Starting web server on: http://{addr}");
     println!("Serving static files from: ./web");
 
     HttpServer::new(move || {

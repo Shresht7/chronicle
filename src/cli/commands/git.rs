@@ -1,6 +1,6 @@
 use clap::Parser;
-use std::path::{Path, PathBuf};
 use ignore::WalkBuilder;
+use std::path::PathBuf;
 
 use crate::{cli, core};
 
@@ -28,7 +28,10 @@ impl Git {
     }
 
     fn _execute_recursive(&self, cli: &cli::args::Args) -> Result<(), Box<dyn std::error::Error>> {
-        println!("Recursively synchronizing Git history from: {}", self.path.display());
+        println!(
+            "Recursively synchronizing Git history from: {}",
+            self.path.display()
+        );
         let walk = WalkBuilder::new(&self.path)
             .hidden(false) // Don't ignore hidden files/directories, we need to find .git
             .build();
@@ -36,7 +39,7 @@ impl Git {
         for result in walk {
             let entry = result?;
             // Check if it's a directory named ".git"
-            if entry.file_type().map_or(false, |ft| ft.is_dir()) && entry.file_name() == ".git" {
+            if entry.file_type().is_some_and(|ft| ft.is_dir()) && entry.file_name() == ".git" {
                 // Get the parent directory of the .git folder, which is the repository root
                 if let Some(repo_path) = entry.path().parent() {
                     println!("Found Git repository: {}", repo_path.display());
