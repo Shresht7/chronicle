@@ -155,17 +155,30 @@ Modified files:
 
 ### Diff snapshots
 
-Shows the difference between two snapshots. The output format can be changed to JSON with `--format json`.
+Shows the difference between two snapshots or between the current directory state and a snapshot. The output format can be changed to JSON with `--format json`.
 
-```bash
-chronicle diff <rev1> <rev2> --path /path/to/directory
-```
+**Usage:**
 
-- `chronicle diff <rev1> <rev2>`: Compares snapshot `<rev1>` and `<rev2>`.
-- `chronicle diff <rev>`: Compares the current files to snapshot `<rev>`.
-- `chronicle diff`: Compares the last two snapshots (`HEAD~1` vs `HEAD`).
+*   `chronicle diff`: Compares the last two snapshots (`HEAD~1` vs `HEAD`).
+*   `chronicle diff <rev>`: Compares the current files in the directory to the specified snapshot `<rev>`.
+*   `chronicle diff <rev1> <rev2>`: Compares snapshot `<rev1>` and snapshot `<rev2>`.
 
-Revisions can be a snapshot ID, `HEAD` (the latest snapshot), or `HEAD~1` (the snapshot before the latest).
+Revisions can be a snapshot ID (e.g., `123`), `HEAD` (the latest snapshot for the current directory), or `HEAD~1` (the snapshot before the latest).
+
+**Examples:**
+
+*   Compare current directory to the latest snapshot:
+    ```bash
+    chronicle diff HEAD --path /path/to/directory
+    ```
+*   Compare a specific snapshot (ID 42) to the latest snapshot:
+    ```bash
+    chronicle diff 42 HEAD --path /path/to/directory
+    ```
+*   Compare the last two snapshots:
+    ```bash
+    chronicle diff --path /path/to/directory
+    ```
 
 ## Data Storage
 
@@ -178,11 +191,15 @@ Chronicle stores its data locally using **SQLite**.
 - Each directory is identified by its canonical root path
 The database schema is internal and may evolve
 
-## Planned / Future Work
+### Serve web interface
 
-`chronicle` is intentionally built in layers. Future additions will build on the existing snapshot data model and include:
-- **Visualization Pipelines:** Generating SVG timelines, graphs, and treemaps to visualize project history.
-- **Additional diff and aggregations views.**
+Starts a local web server to provide a visual interface for exploring snapshots and their history. This command enables interactive visualizations of timelines, treemaps, and other aggregations of the collected data.
+
+```bash
+chronicle serve
+```
+
+This will typically open a web browser pointing to `http://127.0.0.1:8080` (or similar) where you can interact with the data.
 
 ---
 
