@@ -15,6 +15,8 @@ The goal is to collect reliable historical data that can later be queried, diffe
 >
 > `chronicle` is currently in _active development_ and intended primarily for personal use. Interfaces and data formats are volatile.
 
+![Visualization Proof-of-Concept](./image.png)
+
 ---
 
 ## What Chronicle Is (and Is Not)
